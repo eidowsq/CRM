@@ -1,0 +1,6 @@
+./activity.go
+./auth.go
+./common.go
+./customer.go
+./dashboard.go
+./register.go

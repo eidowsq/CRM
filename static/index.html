@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Northstar CRM</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <script>
+    if (!localStorage.getItem("crm_token")) {
+      location.replace("/login.html");
+    }
+  </script>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">N</span><span id="brand-name">northstar<span class="dot">.</span></span></div>
+      <div class="workspace"><span id="workspace-name">销售工作台</span> <span>⌄</span></div>
+      <nav>
+        <a class="active" href="#overview"><span>◷</span> 总览</a>
+        <a href="#customers"><span>◷</span> 客户管理</a>
+        <a href="#todos"><span>◷</span> 待办事项 <b id="todo-total">0</b></a>
+        <a href="#pool"><span>◷</span> 公海池</a>
+        <a href="#activities"><span>◷</span> 跟进记录</a>
+        <a href="#contracts"><span>◷</span> 合同管理 <b id="contract-total">0</b></a>
+        <a id="payment-approvals-nav" class="hidden" href="#payment-approvals"><span>◷</span> 回款管理 <b id="payment-approval-total">0</b></a>
+        <a id="accounts-nav" class="hidden" href="#accounts"><span>⌘</span> 账户管理</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="team-title">我的团队</div>
+      </div>
+      <div class="profile"><span class="avatar dark">我</span><span><strong id="user-name">用户</strong><small id="user-role-label">普通账户</small></span><button class="logout" id="change-password-btn" type="button">修改密码</button><button class="logout" id="logout-btn" type="button">退出</button></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div><p class="eyebrow">THURSDAY, AUGUST 20, 2026</p><h1 id="page-title">销售总览</h1></div>
+        <div class="top-actions"><button class="icon-btn">⌕</button><button class="icon-btn notice">⚑</button></div>
+      </header>
+
+      <section id="overview" class="content">
+        <div class="welcome"><div><span class="pill">本周状态良好</span><h2>下午好</h2><p>这里是你的销售全景，继续保持这个节奏。</p></div><div class="sun">☼</div></div>
+        <div class="metric-grid" id="overview-metrics"></div>
+        <div class="section-head"><div><h3>重点客户</h3><p>最近有活动的客户与商机</p></div><button class="text-btn" onclick="location.hash='customers'">查看全部客户 <span>→</span></button></div>
+        <div class="panel">
+          <div class="table-toolbar"><div class="tabs"><button class="tab active" data-stage="">全部客户 <b id="all-count">0</b></button><button class="tab" data-stage="洽谈中">洽谈中</button><button class="tab" data-stage="已成交">已成交</button></div><label class="search">⌕ <input id="search" placeholder="搜索客户名称..."></label></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>客户名称</th><th>客户行业</th><th>负责人</th><th>成交状态</th><th>下次联系时间</th><th>更新时间</th></tr></thead>
+              <tbody id="customer-list"></tbody>
+            </table>
+            <div class="empty" id="empty">还没有客户，先去客户管理里新建一个吧。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="customers" class="content hidden">
+        <div class="section-head page-section"><div><h2>客户管理</h2><p>完整展示全部客户字段，不提供删除操作。</p></div><div class="section-actions"><button class="primary" id="add-btn-2">＋ 新建客户</button><select class="more-select" id="more-select"><option value="">更多</option><option value="import">导入客户</option><option value="export">导出客户</option></select></div></div>
+        <div class="panel">
+          <div class="table-toolbar">
+            <div class="toolbar-filters">
+              <label class="search wide">⌕ <input id="search-2" placeholder="搜索客户名称..."></label>
+              <label class="list-filter">
+                <span>成交状态</span>
+                <select id="customer-stage-filter">
+                  <option value="">全部状态</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="customer-detail-table">
+              <thead>
+                <tr>
+                  <th>客户名称</th>
+                  <th>客户级别</th>
+                  <th>客户行业</th>
+                  <th>客户来源</th>
+                  <th>成交状态</th>
+                  <th>电话</th>
+                  <th>跟进记录</th>
+                  <th>网址</th>
+                  <th>下次联系时间</th>
+                  <th>备注</th>
+                  <th>创建人</th>
+                  <th>更新时间</th>
+                  <th>创建时间</th>
+                  <th>负责人</th>
+                  <th>省</th>
+                  <th>市</th>
+                  <th>区/县</th>
+                  <th>详细地址</th>
+                </tr>
+              </thead>
+              <tbody id="customer-list-2"></tbody>
+            </table>
+          </div>
+          <div class="pagination-bar">
+            <div class="pagination-summary" id="customer-page-summary">暂无客户数据</div>
+            <div class="pagination-actions">
+              <button class="secondary pagination-btn" id="customer-prev" type="button">上一页</button>
+              <span class="pagination-current" id="customer-page-current">1 / 1</span>
+              <label class="page-jump">跳转到 <input id="customer-page-input" type="number" min="1" inputmode="numeric"></label>
+              <button class="secondary pagination-btn" id="customer-page-go" type="button">前往</button>
+              <button class="secondary pagination-btn" id="customer-next" type="button">下一页</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="todos" class="content hidden">
+        <div class="section-head page-section"><div><h2>待办事项</h2><p id="todo-summary">当天需要联系的客户：0 个</p></div></div>
+        <div class="panel">
+          <div class="table-toolbar"><label class="search wide">⌕ <input id="todo-search" placeholder="搜索待办客户名称..."></label></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>客户名称</th><th>负责人</th><th>成交状态</th><th>电话</th><th>下次联系时间</th><th>创建人</th></tr></thead>
+              <tbody id="todo-list"></tbody>
+            </table>
+            <div class="empty" id="todo-empty">未来 2 天内暂无待联系客户。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pool" class="content hidden">
+        <div class="section-head page-section"><div><h2>公海池</h2><p>集中展示未分配负责人的客户，方便团队认领和重新分配。</p></div></div>
+        <div class="panel">
+          <div class="table-toolbar"><label class="search wide">⌕ <input id="pool-search" placeholder="搜索公海池客户名称..."></label></div>
+          <div class="table-wrap">
+            <table class="customer-detail-table">
+              <thead>
+                <tr>
+                  <th>客户名称</th>
+                  <th>客户级别</th>
+                  <th>客户行业</th>
+                  <th>客户来源</th>
+                  <th>成交状态</th>
+                  <th>电话</th>
+                  <th>网址</th>
+                  <th>下次联系时间</th>
+                  <th>备注</th>
+                  <th>创建人</th>
+                  <th>更新时间</th>
+                  <th>创建时间</th>
+                  <th>负责人</th>
+                  <th>跟进记录</th>
+                  <th>省</th>
+                  <th>市</th>
+                  <th>区/县</th>
+                  <th>详细地址</th>
+                </tr>
+              </thead>
+              <tbody id="pool-list"></tbody>
+            </table>
+            <div class="empty" id="pool-empty">当前公海池还没有客户。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="activities" class="content hidden">
+        <div class="section-head page-section"><div><h2>跟进记录</h2><p>记录每一次沟通，让团队始终保持上下文。</p></div></div>
+        <div class="panel activity-panel" id="activity-list"></div>
+      </section>
+
+      <section id="contracts" class="content hidden">
+        <div class="section-head page-section"><div><h2>合同管理</h2><p>合同提交后需要管理员审批。</p></div><div class="section-actions"><button class="primary" id="open-create-contract" type="button">＋ 新建合同</button></div></div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="customer-detail-table" >
+              <thead><tr><th>合同名称</th><th>客户</th><th>金额</th><th>状态</th><th>提交人</th><th>审批人</th><th>提交时间</th><th>操作</th></tr></thead>
+              <tbody id="contract-list"></tbody>
+            </table>
+            <div class="empty" id="contract-empty">暂无合同数据。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="payment-approvals" class="content hidden">
+        <div class="section-head page-section"><div><h2>回款管理</h2><p>仅管理员可查看并审批回款记录。</p></div><div class="section-actions"><button class="primary" id="open-create-payment" type="button">＋ 新建回款</button></div></div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table class="customer-detail-table ">
+              <thead><tr><th>回款编号</th><th>客户名称</th><th>审核状态</th><th>合同名称</th><th>合同金额</th><th>回款金额</th><th>回款方式</th><th>回款日期</th><th>操作</th></tr></thead>
+              <tbody id="payment-approval-list"></tbody>
+            </table>
+            <div class="empty" id="payment-approval-empty">暂无回款管理数据。</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="accounts" class="content hidden">
+        <div class="section-head page-section"><div><h2>账户管理</h2><p>仅管理员可创建、查看、编辑和删除账户。</p></div><div class="section-actions"><button class="primary" id="open-create-user">＋ 新建账户</button></div></div>
+        <div class="panel">
+          <div class="accounts-layout">
+            <div class="accounts-list-wrap">
+              <table>
+                <thead><tr><th>用户名</th><th>别名</th><th>角色</th><th>创建时间</th><th>操作</th></tr></thead>
+                <tbody id="accounts-list"></tbody>
+              </table>
+              <div class="empty hidden" id="accounts-empty">当前还没有可展示的账户。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <input id="import-file" type="file" accept=".csv,text/csv" hidden>
+
+  <div class="modal-backdrop hidden" id="modal">
+    <form class="modal" id="customer-form">
+      <button type="button" class="close" id="close-modal">×</button>
+      <p class="eyebrow">CUSTOMER PROFILE</p>
+      <h2 id="customer-form-title">新建客户</h2>
+      <p class="modal-sub">统一按标准维度创建客户资料。</p>
+      <div class="form-grid">
+        <label>客户名称*<input name="name" required placeholder="例如：远山科技"></label>
+        <label>客户级别<select name="level"><option>重点</option><option selected>普通</option><option>低优先级</option></select></label>
+        <label>客户行业<input name="industry" placeholder="例如：企业服务"></label>
+        <label>客户来源<select name="source"><option value="">请选择客户来源</option><option>邮件咨询</option><option>电话咨询</option><option>个人资源</option><option>展会资源</option><option>公司资源</option><option>招商资源</option><option>陌拜</option><option>预约上门</option><option>线上询价</option><option>线上注册</option><option>转介绍</option><option>广告</option><option>搜索引擎</option><option>促销活动</option></select></label>
+        <label>成交状态<select name="stage"><option>未成交</option><option>潜在客户</option><option>洽谈中</option><option>方案报价</option><option>已成交</option><option>暂不跟进</option></select></label>
+        <label>负责人<input name="owner" placeholder="例如：张三"></label>
+        <label>电话<input name="phone" placeholder="例如：0755-88886666"></label>
+        <label>网址<input name="website" placeholder="例如：https://example.com"></label>
+        <label>下次联系时间*<input name="next_contact" type="date" required></label>
+        <input name="creator" id="creator-input" type="hidden">
+        <input id="created-at-preview" type="hidden">
+        <input id="updated-at-preview" type="hidden">
+        <label>省<select name="province" id="province-select"><option value="">请选择省</option></select></label>
+        <label>市<select name="city" id="city-select" disabled><option value="">请先选择省</option></select></label>
+        <label>区<select name="district" id="district-select" disabled><option value="">请先选择市</option></select></label>
+        <label class="full">详细地址<input name="address" placeholder="例如：科技园中区 8 栋 1201"></label>
+        <label class="full">跟进记录<textarea name="follow_up_record" rows="3" placeholder="首次沟通、关键需求、下一步计划..."></textarea></label>
+      </div>
+      <label class="full">备注<textarea name="note" rows="3" placeholder="补充说明、风险提示、客户背景等"></textarea></label>
+      <div class="modal-actions"><button type="button" class="secondary" id="cancel-modal">取消</button><button class="primary" id="customer-form-submit" type="submit">保存客户</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop hidden" id="detail-modal">
+    <div class="detail-modal">
+      <button type="button" class="detail-close" id="detail-close">×</button>
+      <div class="detail-header">
+        <div class="detail-title-wrap">
+          <span class="detail-avatar" id="detail-avatar">客</span>
+          <div>
+            <h2 id="detail-name">客户名称</h2>
+            <p id="detail-phone-line">电话：-</p>
+          </div>
+        </div>
+        <div class="detail-actions">
+          <button class="secondary action-blue" id="detail-transfer-pool" type="button">转移到公海池</button>
+        </div>
+      </div>
+
+      <div class="detail-summary">
+        <div><span>客户级别</span><strong id="detail-level">-</strong></div>
+        <div><span>成交状态</span><strong id="detail-stage">-</strong></div>
+        <div><span>负责人</span><strong id="detail-owner">-</strong></div>
+        <div><span>更新时间</span><strong id="detail-updated">-</strong></div>
+      </div>
+
+      <div class="detail-tabs" id="detail-tabs">
+        <button class="detail-tab active" data-tab="followups">跟进记录</button>
+        <button class="detail-tab" data-tab="basic">基本信息</button>
+        <button class="detail-tab" data-tab="contract">合同</button>
+        <button class="detail-tab" data-tab="payment">回款信息</button>
+      </div>
+
+      <div class="detail-pane" id="pane-followups">
+        <div class="followup-composer">
+          <textarea id="detail-followup-content" placeholder="请输入跟进内容"></textarea>
+          <div class="followup-toolbar">
+            <label>记录类型
+              <select id="detail-followup-type">
+                <option>打电话</option>
+                <option>微信沟通</option>
+                <option>上门拜访</option>
+                <option>方案沟通</option>
+              </select>
+            </label>
+            <label>下次联系时间
+              <input id="detail-followup-next" type="date">
+            </label>
+            <button class="primary" id="detail-followup-submit" type="button">发布</button>
+          </div>
+        </div>
+        <div class="followup-list" id="detail-followup-list"></div>
+      </div>
+
+      <div class="detail-pane hidden" id="pane-basic">
+        <div class="section-head page-section detail-basic-head">
+          <div><h3>基本信息</h3></div>
+          <div class="section-actions">
+            <button class="secondary hidden" id="detail-basic-cancel" type="button">取消</button>
+            <button class="primary hidden" id="detail-basic-save" type="button">保存</button>
+            <button class="secondary" id="detail-basic-edit" type="button">编辑</button>
+          </div>
+        </div>
+        <div class="detail-grid" id="detail-basic-grid"></div>
+      </div>
+
+      <div class="detail-pane hidden" id="pane-contract"><div class="detail-empty">暂未维护合同信息</div></div>
+      <div class="detail-pane hidden" id="pane-payment"><div class="detail-empty">暂未维护回款信息</div></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="payment-modal">
+    <form class="modal payment-modal" id="payment-form">
+      <button type="button" class="close" id="close-payment-modal">×</button>
+      <p class="eyebrow">PAYMENT</p>
+      <h2>新建回款</h2>
+      <div class="form-grid">
+        <label>回款编号<input name="serial_no" required></label>
+        <label>客户名称
+          <div class="payment-customer-picker" id="payment-customer-picker">
+            <button class="payment-customer-trigger" id="payment-customer-trigger" type="button">请选择客户名称</button>
+            <div class="payment-customer-dropdown hidden" id="payment-customer-dropdown">
+              <input id="payment-customer-search" class="payment-customer-search" type="text" placeholder="在选项中搜索客户名称" autocomplete="off">
+              <div class="payment-customer-options" id="payment-customer-options"></div>
+            </div>
+          </div>
+          <input name="customer_id" id="payment-customer-id" type="hidden" required>
+        </label>
+        <label>合同编号<select name="contract_id" id="payment-contract-id" required></select></label>
+        <label>回款日期<input name="payment_date" id="payment-date" type="date" required></label>
+        <label>回款方式<select name="payment_method"><option>银行转账</option><option>现金</option><option>微信</option><option>支付宝</option><option>支票</option><option>邮政汇款</option><option>电汇</option><option>其他</option></select></label>
+        <label>回款金额<input name="payment_amount" type="number" step="0.01" min="0" required></label>
+      </div>
+      <label class="full">备注<textarea name="note" rows="4" placeholder="补充说明"></textarea></label>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="cancel-payment-modal">取消</button>
+        <button class="primary" type="submit">保存回款</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop hidden" id="contract-modal">
+    <form class="modal contract-modal" id="contract-form">
+      <button type="button" class="close contract-close" id="close-contract-modal">×</button>
+      <div class="contract-modal-body">
+        <h2 class="contract-title">新建合同</h2>
+
+        <section class="contract-section">
+          <div class="contract-section-title">基本信息</div>
+          <div class="contract-grid">
+            <label class="contract-field required">
+              <span>合同编号</span>
+              <input name="serial_no">
+            </label>
+            <label class="contract-field required">
+              <span>合同名称</span>
+              <input name="title" required>
+            </label>
+            <label class="contract-field required">
+              <span>客户名称</span>
+              <div class="payment-customer-picker" id="contract-customer-picker">
+                <button class="payment-customer-trigger" id="contract-customer-trigger" type="button">请选择客户名称</button>
+                <div class="payment-customer-dropdown hidden" id="contract-customer-dropdown">
+                  <input id="contract-customer-search" class="payment-customer-search" type="text" placeholder="在选项中搜索客户名称" autocomplete="off">
+                  <div class="payment-customer-options" id="contract-customer-options"></div>
+                </div>
+              </div>
+              <input name="customer_id" id="contract-customer" type="hidden" required>
+            </label>
+            <label class="contract-field">
+              <span>商机名称</span>
+              <input name="business_name" placeholder="+添加" disabled>
+            </label>
+            <label class="contract-field">
+              <span>下单时间</span>
+              <input name="order_date" id="contract-order-date" type="date">
+            </label>
+            <label class="contract-field required">
+              <span>合同金额（元）</span>
+              <input name="amount" type="number" step="0.01" min="0" required>
+            </label>
+            <label class="contract-field">
+              <span>合同开始时间</span>
+              <input name="start_date" type="date">
+            </label>
+            <label class="contract-field">
+              <span>合同到期时间</span>
+              <input name="end_date" type="date">
+            </label>
+            <label class="contract-field">
+              <span>客户签约人</span>
+              <input name="customer_signer" placeholder="+添加">
+            </label>
+            <label class="contract-field">
+              <span>公司签约人</span>
+              <input name="company_signer" placeholder="+添加员工">
+            </label>
+            <label class="contract-field contract-span-2">
+              <span>备注</span>
+              <textarea name="content" rows="5"></textarea>
+            </label>
+            <div class="contract-field contract-span-2">
+              <span>附件</span>
+              <label class="contract-upload-box" for="contract-attachments">
+                <input id="contract-attachments" name="attachments" type="file" multiple hidden>
+                <span class="contract-upload-trigger">上传附件</span>
+                <span class="contract-upload-tip">支持一次选择多个文件</span>
+              </label>
+              <div class="contract-file-list" id="contract-file-list">暂未选择附件</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="contract-section">
+          <div class="contract-product-head">
+            <span>产品</span>
+            <button class="primary contract-product-btn" id="contract-add-product" type="button">添加产品</button>
+          </div>
+          <div class="contract-product-wrap">
+            <div class="contract-product-table">
+              <div class="contract-product-row contract-product-header">
+                <span>产品名称</span>
+                <span>产品类别</span>
+                <span>单位</span>
+                <span>标准价格</span>
+                <span>售价</span>
+                <span>数量</span>
+                <span>折扣（%）</span>
+                <span>合计</span>
+                <span>操作</span>
+              </div>
+              <div id="contract-product-body"></div>
+              <div class="contract-product-empty" id="contract-product-empty">暂无数据</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-actions contract-actions">
+        <button class="primary" type="submit">提交审核</button>
+        <button class="secondary contract-draft-btn" id="contract-save-draft" type="button">保存草稿</button>
+        <button type="button" class="secondary contract-cancel-btn" id="contract-cancel-btn">取消</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop hidden" id="account-create-modal">
+    <form class="modal user-modal" id="account-create-form">
+      <button type="button" class="close" id="close-account-create-modal">×</button>
+      <p class="eyebrow">ACCOUNT</p>
+      <h2>新建账户</h2>
+      <div class="form-grid">
+        <label>用户名<input name="username" required></label>
+        <label>别名<input name="alias"></label>
+        <label>密码<input id="account-create-password" name="password" type="password" required></label>
+        <label>角色<select name="role"><option value="user">user</option><option value="admin">admin</option></select></label>
+      </div>
+      <label class="password-toggle"><input id="account-create-password-toggle" type="checkbox"> 显示密码</label>
+      <p class="login-hint">密码至少 8 位，且必须包含大写字母、小写字母、数字和特殊字符。</p>
+      <div class="modal-actions"><button type="button" class="secondary" id="cancel-account-create-modal">取消</button><button class="primary" type="submit">保存账户</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop hidden" id="account-edit-modal">
+      <form class="modal user-modal" id="account-edit-form">
+        <button type="button" class="close" id="close-account-edit-modal">×</button>
+        <p class="eyebrow">ACCOUNT</p>
+        <h2>编辑账户</h2>
+        <input id="account-edit-id" type="hidden">
+      <div class="form-grid">
+        <label>用户名<input id="account-edit-username" readonly></label>
+        <label>角色<input id="account-edit-role" readonly></label>
+        <label>别名<input id="account-edit-alias" name="alias"></label>
+        <label>新密码<input id="account-edit-password" name="password" type="password" placeholder="留空则不修改"></label>
+      </div>
+      <label class="password-toggle"><input id="account-edit-password-toggle" type="checkbox"> 显示密码</label>
+      <p class="login-hint">新密码至少 8 位，且必须包含大写字母、小写字母、数字和特殊字符。</p>
+      <div class="modal-actions"><button type="button" class="secondary" id="cancel-account-edit-modal">取消</button><button class="primary" type="submit">保存修改</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop hidden" id="change-password-modal">
+    <form class="modal user-modal" id="change-password-form">
+      <button type="button" class="close" id="close-change-password-modal">×</button>
+      <p class="eyebrow">SECURITY</p>
+      <h2>修改我的密码</h2>
+      <div class="form-grid">
+        <label>旧密码<input id="change-password-old" name="old_password" type="password" required></label>
+        <label>新密码<input id="change-password-new" name="new_password" type="password" required></label>
+        <label>确认新密码<input id="change-password-confirm" name="confirm_password" type="password" required></label>
+      </div>
+      <label class="password-toggle"><input id="change-password-toggle" type="checkbox"> 显示密码</label>
+      <p class="login-hint">新密码至少 8 位，且必须包含大写字母、小写字母、数字和特殊字符。</p>
+      <div class="modal-actions"><button type="button" class="secondary" id="cancel-change-password-modal">取消</button><button class="primary" type="submit">保存密码</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop hidden" id="import-progress-modal">
+    <div class="modal import-progress-modal">
+      <button type="button" class="close" id="close-import-progress-modal">×</button>
+      <h2>导入客户</h2>
+      <p class="modal-sub" id="import-progress-text">正在准备导入...</p>
+      <div class="import-progress-bar">
+        <div class="import-progress-fill" id="import-progress-fill"></div>
+      </div>
+      <div class="import-progress-percent" id="import-progress-percent">0%</div>
+      <div class="import-progress-summary hidden" id="import-progress-summary"></div>
+      <div class="import-error-panel hidden" id="import-error-panel">
+        <div class="import-error-title">出错条目</div>
+        <div class="import-error-list" id="import-error-list"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="import-progress-confirm">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="contract-detail-modal">
+    <div class="detail-modal contract-detail-modal">
+      <button type="button" class="detail-close" id="contract-detail-close">×</button>
+      <div class="detail-header">
+        <div class="detail-title-wrap">
+          <span class="detail-avatar" id="contract-detail-avatar">合</span>
+          <div>
+            <h2 id="contract-detail-title">合同名称</h2>
+            <p id="contract-detail-customer">客户：-</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-summary contract-detail-summary">
+        <div><span>合同金额</span><strong id="contract-detail-amount">-</strong></div>
+        <div><span>状态</span><strong id="contract-detail-status">-</strong></div>
+        <div><span>提交人</span><strong id="contract-detail-submitter">-</strong></div>
+        <div><span>审批人</span><strong id="contract-detail-reviewer">-</strong></div>
+      </div>
+
+      <div class="detail-pane">
+        <div class="contract-detail-section">
+          <h3>基本信息</h3>
+          <div class="detail-grid contract-detail-grid" id="contract-detail-grid"></div>
+        </div>
+
+        <div class="contract-detail-section">
+          <h3>产品明细</h3>
+          <div class="contract-product-wrap">
+            <div class="contract-product-table">
+              <div class="contract-product-row contract-product-header">
+                <span>产品名称</span>
+                <span>产品类别</span>
+                <span>单位</span>
+                <span>标准价格</span>
+                <span>售价</span>
+                <span>数量</span>
+                <span>折扣（%）</span>
+                <span>合计</span>
+                <span>备注</span>
+              </div>
+              <div id="contract-detail-products"></div>
+              <div class="contract-product-empty" id="contract-detail-products-empty">暂无产品数据</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contract-detail-section">
+          <h3>附件</h3>
+          <div class="detail-log-tags" id="contract-detail-attachments"></div>
+          <div class="detail-empty hidden" id="contract-detail-attachments-empty">暂无附件</div>
+        </div>
+
+        <div class="contract-detail-section">
+          <h3>备注</h3>
+          <div class="detail-card contract-detail-note-card">
+            <strong id="contract-detail-note">-</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
