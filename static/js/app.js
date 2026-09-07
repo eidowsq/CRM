@@ -1,4 +1,4 @@
-const state = {
+﻿const state = {
   customers: [],
   activities: [],
   contacts: [],
@@ -18,16 +18,20 @@ const state = {
 const $ = (id) => document.getElementById(id);
 
 const regionOptions = {
-  "北京市": { "北京市": ["东城区", "西城区", "朝阳区", "海淀区", "丰台区", "昌平区"] },
-  "上海市": { "上海市": ["黄浦区", "徐汇区", "长宁区", "浦东新区", "闵行区", "宝山区"] },
-  "广东省": {
-    "广州市": ["天河区", "越秀区", "海珠区", "白云区", "番禺区", "黄埔区"],
-    "深圳市": ["南山区", "福田区", "罗湖区", "宝安区", "龙岗区", "龙华区"],
-    "东莞市": ["南城街道", "东城街道", "万江街道", "长安镇", "虎门镇", "常平镇"],
+  "鍖椾含甯�": {
+    "鍖椾含甯�": ["涓滃煄鍖�", "瑗垮煄鍖�", "鏈濋槼鍖�", "娴锋穩鍖�", "涓板彴鍖�", "鏄屽钩鍖�"],
   },
-  "浙江省": {
-    "杭州市": ["西湖区", "拱墅区", "上城区", "滨江区", "余杭区"],
-    "宁波市": ["海曙区", "江北区", "鄞州区", "镇海区", "北仑区"],
+  "涓婃捣甯�": {
+    "涓婃捣甯�": ["榛勬郸鍖�", "寰愭眹鍖�", "闀垮畞鍖�", "娴︿笢鏂板尯", "闂佃鍖�", "瀹濆北鍖�"],
+  },
+  "骞夸笢鐪�": {
+    "骞垮窞甯�": ["澶╂渤鍖�", "瓒婄鍖�", "娴风彔鍖�", "鐧戒簯鍖�", "鐣鍖�", "榛勫煍鍖�"],
+    "娣卞湷甯�": ["鍗楀北鍖�", "绂忕敯鍖�", "缃楁箹鍖�", "瀹濆畨鍖�", "榫欏矖鍖�", "榫欏崕鍖�"],
+    "涓滆帪甯�": ["鍗楀煄琛楅亾", "涓滃煄琛楅亾", "涓囨睙琛楅亾", "闀垮畨闀�", "铏庨棬闀�", "甯稿钩闀�"],
+  },
+  "娴欐睙鐪�": {
+    "鏉窞甯�": ["瑗挎箹鍖�", "鎷卞鍖�", "涓婂煄鍖�", "婊ㄦ睙鍖�", "浣欐澀鍖�"],
+    "瀹佹尝甯�": ["娴锋洐鍖�", "姹熷寳鍖�", "閯炲窞鍖�", "闀囨捣鍖�", "鍖椾粦鍖�"],
   },
 };
 
@@ -38,6 +42,7 @@ if (!localStorage.getItem("crm_token")) {
 const currentUser = localStorage.getItem("crm_user") || "";
 const currentRole = localStorage.getItem("crm_role") || (currentUser === "admin" ? "admin" : "user");
 const currentAlias = localStorage.getItem("crm_alias") || currentUser || "用户";
+if (currentRole !== "admin") $("export-customers-option")?.remove();
 
 const customerSourceOptions = [
   "邮件咨询", "电话咨询", "个人资源", "展会资源", "公司资源", "招商资源", "陌拜",
@@ -88,6 +93,13 @@ function dateTimeText(value) {
   return date.toLocaleString("zh-CN");
 }
 
+function formatTopbarDate(value) {
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) return "";
+  const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+  return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}${weekdays[date.getDay()]}`;
+}
+
 function toDateInputValue(value) {
   if (!value) return "";
   const date = new Date(value);
@@ -117,7 +129,7 @@ async function api(path, options = {}) {
   const response = await fetch(path, { ...options, headers });
   const body = await response.json();
   if (!response.ok) {
-    throw new Error(body.error || "请求失败");
+    throw new Error(body.error || "璇锋眰澶辫触");
   }
   return body.data;
 }
@@ -129,6 +141,7 @@ async function loadUiConfig() {
     const workspace = String(config?.workspace_name || "销售工作台").trim();
     if ($("brand-name")) $("brand-name").innerHTML = `${escapeHtml(brand)}<span class="dot">.</span>`;
     if ($("workspace-name")) $("workspace-name").textContent = workspace || "销售工作台";
+    if ($("topbar-date")) $("topbar-date").textContent = formatTopbarDate();
     document.title = `${brand || "northstar"} CRM`;
   } catch {
     // keep existing defaults when config is unavailable
@@ -165,7 +178,7 @@ function showImportProgressModal() {
   $("import-progress-summary")?.classList.add("hidden");
   $("import-error-panel")?.classList.add("hidden");
   if ($("import-error-list")) $("import-error-list").innerHTML = "";
-  setImportProgress(0, "正在准备导入...");
+  setImportProgress(0, "姝ｅ湪鍑嗗瀵煎叆...");
 }
 
 function hideImportProgressModal() {
@@ -233,7 +246,7 @@ async function exportCustomers() {
     },
   });
   if (!response.ok) {
-    throw new Error("导出失败");
+    throw new Error("瀵煎嚭澶辫触");
   }
   const blob = await response.blob();
   const disposition = response.headers.get("Content-Disposition") || "";
@@ -264,13 +277,13 @@ async function createContract(payload) {
   });
   const body = await response.json();
   if (!response.ok) {
-    throw new Error(body.error || "合同创建失败");
+    throw new Error(body.error || "鍚堝悓鍒涘缓澶辫触");
   }
   return body.data;
 }
 
 async function reviewContract(id, payload) {
-  return api(`/api/contracts/${id}/review`, { method: "POST", body: JSON.stringify(payload) });
+  return api("/api/contracts/" + id + "/review", { method: "POST", body: JSON.stringify(payload) });
 }
 
 async function createUser(payload) {
@@ -278,7 +291,7 @@ async function createUser(payload) {
 }
 
 async function updateUser(id, payload) {
-  return api(`/api/users/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+  return api("/api/users/" + id, { method: "PUT", body: JSON.stringify(payload) });
 }
 
 async function changeOwnPassword(payload) {
@@ -290,15 +303,19 @@ async function createPayment(payload) {
 }
 
 async function reviewPayment(id, payload) {
-  return api(`/api/payments/${id}/review`, { method: "POST", body: JSON.stringify(payload) });
+  return api("/api/payments/" + id + "/review", { method: "POST", body: JSON.stringify(payload) });
 }
 
 async function transferCustomerToPool(customerId) {
-  return api(`/api/customers/${customerId}/to-pool`, { method: "POST", body: "{}" });
+  return api("/api/customers/" + customerId + "/to-pool", { method: "POST", body: "{}" });
 }
 
 async function claimCustomerFromPool(customerId) {
-  return api(`/api/customers/${customerId}/claim`, { method: "POST", body: "{}" });
+  return api("/api/customers/" + customerId + "/claim", { method: "POST", body: "{}" });
+}
+
+async function deleteCustomer(customerId) {
+  return api("/api/customers/" + customerId, { method: "DELETE", body: "{}" });
 }
 
 function getCustomerById(id) {
@@ -316,7 +333,7 @@ function isPoolCustomer(customer) {
 
 function customerNameButton(customer) {
   const id = Number(customer.id || 0);
-  return `<button class="customer-link" type="button" data-open-detail="${id}" onclick="window.openCustomerDetailById?.(${id})"><span class="name-tip">${textOrDash(customer.name)}<span class="phone-pop">电话：${escapeHtml(getCustomerPhone(customer))}</span></span></button>`;
+  return `<button class="customer-link" type="button" data-open-detail="${id}">${textOrDash(customer.name)}</button>`;
 }
 
 function overviewRow(customer) {
@@ -353,8 +370,27 @@ function detailRow(customer) {
   </tr>`;
 }
 
+function customerManagementRow(customer) {
+  return `<tr>
+    <td>${customerNameButton(customer)}</td>
+    <td>${textOrDash(customer.level)}</td>
+    <td>${textOrDash(customer.industry)}</td>
+    <td>${textOrDash(customer.source)}</td>
+    <td><span class="stage ${escapeHtml(textOrDash(customer.stage))}">${textOrDash(customer.stage)}</span></td>
+    <td>${textOrDash(customer.phone)}</td>
+    <td class="wrap-cell">${textOrDash(customer.follow_up_record)}</td>
+    <td>${dateText(customer.next_contact)}</td>
+    <td class="wrap-cell">${textOrDash(customer.note)}</td>
+    <td>${textOrDash(customer.creator)}</td>
+    <td>${dateTimeText(customer.updated_at)}</td>
+    <td>${dateTimeText(customer.created_at)}</td>
+    <td>${textOrDash(customer.owner)}</td>
+    <td class="wrap-cell">${textOrDash(customer.address)}</td>
+  </tr>`;
+}
+
 function poolRow(customer) {
-  return detailRow(customer);
+  return customerManagementRow(customer);
 }
 
 function todoRow(customer) {
@@ -391,10 +427,11 @@ function getPoolCustomers(keyword = "") {
 
 function isTodoCustomer(customer) {
   if (!customer.next_contact) return false;
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const next = new Date(customer.next_contact);
-  return next >= start && next <= new Date(start.getFullYear(), start.getMonth(), start.getDate(), 23, 59, 59);
+  if (Number.isNaN(next.getTime())) return false;
+  const now = new Date();
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  return next <= endOfToday;
 }
 
 function getTodoCustomers(keyword = "") {
@@ -404,7 +441,7 @@ function getTodoCustomers(keyword = "") {
     if (!isTodoCustomer(customer)) return false;
     if (!lowerKeyword) return true;
     return [customer.name, customer.owner, customer.phone, customer.creator].some((item) => String(item || "").toLowerCase().includes(lowerKeyword));
-  });
+  }).sort((a, b) => new Date(a.next_contact || 0) - new Date(b.next_contact || 0));
 }
 
 function getCustomerActivities(customerId) {
@@ -438,7 +475,7 @@ function fillPaymentCustomerOptions(selectedId = 0) {
   const customers = (state.customers || []).filter((item) => !isPoolCustomer(item));
   list.innerHTML = customers.length
     ? customers.map((item) => `<button class="payment-customer-option" type="button" data-payment-customer-option="${item.id}" data-payment-customer-name="${escapeHtml(textOrDash(item.name))}">${escapeHtml(textOrDash(item.name))}</button>`).join("")
-    : `<div class="payment-customer-empty">暂无可选客户</div>`;
+    : `<div class="payment-customer-empty">鏆傛棤鍙€夊鎴?/div>`;
   hiddenInput.value = selectedId ? String(selectedId) : "";
   const selectedCustomer = customers.find((item) => Number(item.id) === Number(selectedId));
   trigger.textContent = selectedCustomer ? textOrDash(selectedCustomer.name) : "请选择客户名称";
@@ -460,7 +497,7 @@ function fillContractCustomerOptions(selectedId = 0) {
   const customers = (state.customers || []).filter((item) => !isPoolCustomer(item));
   list.innerHTML = customers.length
     ? customers.map((item) => `<button class="payment-customer-option" type="button" data-contract-customer-option="${item.id}" data-contract-customer-name="${escapeHtml(textOrDash(item.name))}">${escapeHtml(textOrDash(item.name))}</button>`).join("")
-    : `<div class="payment-customer-empty">暂无可选客户</div>`;
+    : `<div class="payment-customer-empty">鏆傛棤鍙€夊鎴?/div>`;
   hiddenInput.value = selectedId ? String(selectedId) : "";
   const selectedCustomer = customers.find((item) => Number(item.id) === Number(selectedId));
   trigger.textContent = selectedCustomer ? textOrDash(selectedCustomer.name) : "请选择客户名称";
@@ -584,15 +621,15 @@ function renderContractProducts() {
   if (!body || !empty) return;
   body.innerHTML = (state.contractProducts || []).map((product, index) => `
     <div class="contract-product-row contract-product-body-row">
-      <input data-contract-product="${index}" data-field="name" value="${escapeHtml(product.name)}" placeholder="输入产品名称">
-      <input data-contract-product="${index}" data-field="category" value="${escapeHtml(product.category)}" placeholder="输入类别">
-      <input data-contract-product="${index}" data-field="unit" value="${escapeHtml(product.unit)}" placeholder="台/件">
+      <input data-contract-product="${index}" data-field="name" value="${escapeHtml(product.name)}" placeholder="杈撳叆浜у搧鍚嶇О">
+      <input data-contract-product="${index}" data-field="category" value="${escapeHtml(product.category)}" placeholder="杈撳叆绫诲埆">
+      <input data-contract-product="${index}" data-field="unit" value="${escapeHtml(product.unit)}" placeholder="鍙?浠?>
       <input data-contract-product="${index}" data-field="standard_price" type="number" step="0.01" min="0" value="${product.standard_price || 0}">
       <input data-contract-product="${index}" data-field="sale_price" type="number" step="0.01" min="0" value="${product.sale_price || 0}">
       <input data-contract-product="${index}" data-field="quantity" type="number" step="1" min="0" value="${product.quantity || 0}">
       <input data-contract-product="${index}" data-field="discount" type="number" step="0.01" min="0" value="${product.discount || 0}">
       <div class="readonly-cell contract-product-total" data-contract-product-total="${index}">${money(contractProductTotal(product))}</div>
-      <button class="contract-product-remove" type="button" data-remove-contract-product="${index}">删除</button>
+      <button class="contract-product-remove" type="button" data-remove-contract-product="${index}">鍒犻櫎</button>
     </div>
   `).join("");
   empty.classList.toggle("hidden", state.contractProducts.length > 0);
@@ -618,7 +655,7 @@ function renderCustomerTable(list) {
   state.customerPage = Math.min(Math.max(state.customerPage, 1), totalPages);
   const start = (state.customerPage - 1) * state.customerPageSize;
   const end = Math.min(start + state.customerPageSize, list.length);
-  if ($("customer-list-2")) $("customer-list-2").innerHTML = list.slice(start, end).map(detailRow).join("");
+  if ($("customer-list-2")) $("customer-list-2").innerHTML = list.slice(start, end).map(customerManagementRow).join("");
   if ($("customer-page-summary")) $("customer-page-summary").textContent = list.length ? `显示第 ${start + 1}-${end} 条，共 ${list.length} 条` : "暂无客户数据";
   if ($("customer-page-current")) $("customer-page-current").textContent = `${state.customerPage} / ${totalPages}`;
   if ($("customer-page-input")) $("customer-page-input").max = totalPages;
@@ -638,7 +675,7 @@ function renderTodoCustomers() {
   if ($("todo-list")) $("todo-list").innerHTML = rows.map(todoRow).join("");
   if ($("todo-empty")) $("todo-empty").classList.toggle("hidden", rows.length > 0);
   if ($("todo-total")) $("todo-total").textContent = rows.length;
-  if ($("todo-summary")) $("todo-summary").textContent = `当天需要联系的客户：${rows.length} 个`;
+  if ($("todo-summary")) $("todo-summary").textContent = "当天及逾期待联系的客户：" + rows.length + " 个";
 }
 
 function renderCustomers() {
@@ -654,40 +691,52 @@ function renderCustomers() {
 }
 
 function fillCustomerStageFilter() {
-  if (!$("customer-stage-filter")) return;
-  $("customer-stage-filter").innerHTML = ['<option value="">全部状态</option>']
-    .concat(customerStageOptions.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`))
+  const select = $("customer-stage-filter");
+  if (!select) return;
+  const options = ['<option value="">全部状态</option>']
+    .concat(customerStageOptions.map((item) => '<option value="' + escapeHtml(item) + '">' + escapeHtml(item) + '</option>'))
     .join("");
-  $("customer-stage-filter").value = state.customerFilter.customerStage || "";
+  select.innerHTML = options;
+  select.value = state.customerFilter.customerStage || "";
 }
 
 function renderActivities() {
   const list = state.activities || [];
   if (!$("activity-list")) return;
   $("activity-list").innerHTML = list.length
-    ? list.map((item) => `<div class="activity-item"><span class="activity-dot">◷</span><div><strong>${textOrDash(item.customer ? item.customer.name : "客户")} · ${textOrDash(item.type || "跟进")}</strong><p>${textOrDash(item.content)}</p><time>${dateTimeText(item.created_at)}</time></div></div>`).join("")
+    ? list.map((item) => '<div class="activity-item"><span class="activity-dot">◷</span><div><strong>'
+      + textOrDash(item.customer ? item.customer.name : "客户")
+      + ' · '
+      + textOrDash(item.type || "跟进")
+      + '</strong><p>'
+      + textOrDash(item.content)
+      + '</p><time>'
+      + dateTimeText(item.created_at)
+      + ' · '
+      + textOrDash(item.publisher || (item.customer && (item.customer.creator || item.customer.owner)) || "未知发布人")
+      + '</time></div></div>').join("")
     : '<div class="empty">还没有跟进记录。</div>';
 }
 
 function renderContracts() {
   const list = state.contracts || [];
   if (!$("contract-list")) return;
-  $("contract-list").innerHTML = list.map((item) => `
-    <tr>
-      <td><button class="customer-link" type="button" data-open-contract="${item.id}">${textOrDash(item.title)}</button></td>
-      <td>${textOrDash(item.customer ? item.customer.name : "")}</td>
-      <td>${money(item.amount)}</td>
-      <td><span class="contract-status contract-status-${item.status || "pending"}">${contractStatusText(item.status)}</span></td>
-      <td>${textOrDash(item.submitter)}</td>
-      <td>${textOrDash(item.reviewer)}</td>
-      <td>${dateTimeText(item.created_at)}</td>
-      <td>
-        ${currentRole === "admin" && item.status === "pending"
-          ? `<button class="secondary mini-btn" type="button" data-contract-review="${item.id}" data-action="approve">通过</button> <button class="secondary mini-btn" type="button" data-contract-review="${item.id}" data-action="reject">驳回</button>`
-          : `<span class="muted">${contractStatusText(item.status)}</span>`}
-      </td>
-    </tr>
-  `).join("");
+  $("contract-list").innerHTML = list.map((item) => {
+    const actions = currentRole === "admin" && item.status === "pending"
+      ? '<button class="secondary mini-btn" type="button" data-contract-review="' + item.id + '" data-action="approve">通过</button> '
+        + '<button class="secondary mini-btn" type="button" data-contract-review="' + item.id + '" data-action="reject">驳回</button>'
+      : '<span class="muted">' + contractStatusText(item.status) + '</span>';
+    return '<tr>'
+      + '<td><button class="customer-link" type="button" data-open-contract="' + item.id + '">' + textOrDash(item.title) + '</button></td>'
+      + '<td>' + textOrDash(item.customer ? item.customer.name : "") + '</td>'
+      + '<td>' + money(item.amount) + '</td>'
+      + '<td><span class="contract-status contract-status-' + (item.status || "pending") + '">' + contractStatusText(item.status) + '</span></td>'
+      + '<td>' + textOrDash(item.submitter) + '</td>'
+      + '<td>' + textOrDash(item.reviewer) + '</td>'
+      + '<td>' + dateTimeText(item.created_at) + '</td>'
+      + '<td>' + actions + '</td>'
+      + '</tr>';
+  }).join("");
   if ($("contract-empty")) $("contract-empty").classList.toggle("hidden", list.length > 0);
   updateContractBadge();
 }
@@ -695,23 +744,23 @@ function renderContracts() {
 function renderPaymentApprovals() {
   const list = state.payments || [];
   if (!$("payment-approval-list") || !$("payment-approval-empty")) return;
-  $("payment-approval-list").innerHTML = list.map((item) => `
-    <tr>
-      <td>${textOrDash(item.serial_no)}</td>
-      <td>${textOrDash(item.customer ? item.customer.name : "")}</td>
-      <td><span class="contract-status contract-status-${item.status || "pending"}">${paymentStatusText(item.status)}</span></td>
-      <td><button class="customer-link" type="button" data-open-contract="${item.contract ? item.contract.id : 0}">${textOrDash(item.contract_title || (item.contract ? item.contract.title : ""))}</button></td>
-      <td>${money(item.contract_amount || (item.contract ? item.contract.amount : 0))}</td>
-      <td>${money(item.payment_amount)}</td>
-      <td>${textOrDash(item.payment_method)}</td>
-      <td>${dateText(item.payment_date)}</td>
-      <td>
-        ${currentRole === "admin" && item.status === "pending"
-          ? `<button class="secondary mini-btn" type="button" data-payment-review="${item.id}" data-action="approve">通过</button> <button class="secondary mini-btn" type="button" data-payment-review="${item.id}" data-action="reject">驳回</button>`
-          : `<span class="muted">${paymentStatusText(item.status)}</span>`}
-      </td>
-    </tr>
-  `).join("");
+  $("payment-approval-list").innerHTML = list.map((item) => {
+    const actions = currentRole === "admin" && item.status === "pending"
+      ? '<button class="secondary mini-btn" type="button" data-payment-review="' + item.id + '" data-action="approve">通过</button> '
+        + '<button class="secondary mini-btn" type="button" data-payment-review="' + item.id + '" data-action="reject">驳回</button>'
+      : '<span class="muted">' + paymentStatusText(item.status) + '</span>';
+    return '<tr>'
+      + '<td>' + textOrDash(item.serial_no) + '</td>'
+      + '<td>' + textOrDash(item.customer ? item.customer.name : "") + '</td>'
+      + '<td><span class="contract-status contract-status-' + (item.status || "pending") + '">' + paymentStatusText(item.status) + '</span></td>'
+      + '<td><button class="customer-link" type="button" data-open-contract="' + (item.contract ? item.contract.id : 0) + '">' + textOrDash(item.contract_title || (item.contract ? item.contract.title : "")) + '</button></td>'
+      + '<td>' + money(item.contract_amount || (item.contract ? item.contract.amount : 0)) + '</td>'
+      + '<td>' + money(item.payment_amount) + '</td>'
+      + '<td>' + textOrDash(item.payment_method) + '</td>'
+      + '<td>' + dateText(item.payment_date) + '</td>'
+      + '<td>' + actions + '</td>'
+      + '</tr>';
+  }).join("");
   $("payment-approval-empty").classList.toggle("hidden", list.length > 0);
   updatePaymentApprovalBadge();
 }
@@ -727,12 +776,12 @@ function openContractDetailModal(contractId) {
   const contractModal = contractBackdrop?.querySelector(".contract-detail-modal");
   $("contract-detail-avatar").textContent = textOrDash(contract.title).slice(0, 1);
   $("contract-detail-title").textContent = textOrDash(contract.title);
-  $("contract-detail-customer").textContent = `客户：${textOrDash(contract.customer ? contract.customer.name : "")}`;
+  $("contract-detail-customer").textContent = "客户：" + textOrDash(contract.customer ? contract.customer.name : "");
   const summary = document.querySelector(".contract-detail-summary");
   if (summary) {
     summary.innerHTML = [
       ["合同编号", contract.serial_no],
-      ["商机名称", contract.business_name],
+      ["商务名称", contract.business_name],
       ["客户名称", contract.customer ? contract.customer.name : ""],
       ["合同金额", money(contract.amount)],
       ["下单时间", dateText(contract.order_date)],
@@ -740,14 +789,14 @@ function openContractDetailModal(contractId) {
       ["到期时间", dateText(contract.end_date)],
       ["客户签约人", contract.customer_signer],
       ["公司签约人", contract.company_signer],
-    ].map(([label, value]) => `<div><span>${label}</span><strong>${textOrDash(value)}</strong></div>`).join("");
+    ].map(([label, value]) => '<div><span>' + label + '</span><strong>' + textOrDash(value) + '</strong></div>').join("");
   }
 
   const gridEntries = [
     ["合同编号", contract.serial_no],
     ["合同名称", contract.title],
     ["客户名称", contract.customer ? contract.customer.name : ""],
-    ["商机名称", contract.business_name],
+    ["商务名称", contract.business_name],
     ["合同金额", money(contract.amount)],
     ["下单时间", dateText(contract.order_date)],
     ["合同开始时间", dateText(contract.start_date)],
@@ -761,31 +810,29 @@ function openContractDetailModal(contractId) {
     ["审批时间", dateTimeText(contract.reviewed_at)],
   ];
   $("contract-detail-grid").innerHTML = gridEntries
-    .map(([label, value]) => `<div class="detail-card"><span>${label}</span><strong>${textOrDash(value)}</strong></div>`)
+    .map(([label, value]) => '<div class="detail-card"><span>' + label + '</span><strong>' + textOrDash(value) + '</strong></div>')
     .join("");
 
   const products = parseContractProducts(contract.products);
   $("contract-detail-products").innerHTML = products.map((product) => {
     const item = normalizeContractProduct(product);
-    return `
-      <div class="contract-product-row contract-detail-product-row">
-        <div class="readonly-cell">${textOrDash(item.name)}</div>
-        <div class="readonly-cell">${textOrDash(item.category)}</div>
-        <div class="readonly-cell">${textOrDash(item.unit)}</div>
-        <div class="readonly-cell">${money(item.standard_price)}</div>
-        <div class="readonly-cell">${money(item.sale_price)}</div>
-        <div class="readonly-cell">${item.quantity}</div>
-        <div class="readonly-cell">${item.discount}</div>
-        <div class="readonly-cell contract-product-total">${money(contractProductTotal(item))}</div>
-        <div class="readonly-cell">-</div>
-      </div>
-    `;
+    return '<div class="contract-product-row contract-detail-product-row">'
+      + '<div class="readonly-cell">' + textOrDash(item.name) + '</div>'
+      + '<div class="readonly-cell">' + textOrDash(item.category) + '</div>'
+      + '<div class="readonly-cell">' + textOrDash(item.unit) + '</div>'
+      + '<div class="readonly-cell">' + money(item.standard_price) + '</div>'
+      + '<div class="readonly-cell">' + money(item.sale_price) + '</div>'
+      + '<div class="readonly-cell">' + item.quantity + '</div>'
+      + '<div class="readonly-cell">' + item.discount + '</div>'
+      + '<div class="readonly-cell contract-product-total">' + money(contractProductTotal(item)) + '</div>'
+      + '<div class="readonly-cell">-</div>'
+      + '</div>';
   }).join("");
   $("contract-detail-products-empty").classList.toggle("hidden", products.length > 0);
 
   const attachments = parseContractAttachments(contract.attachments);
   $("contract-detail-attachments").innerHTML = attachments
-    .map((attachment) => `<a class="contract-attachment-link" href="${attachment.url}" target="_blank" rel="noreferrer">${attachment.name}</a>`)
+    .map((attachment) => '<a class="contract-attachment-link" href="' + attachment.url + '" target="_blank" rel="noreferrer">' + attachment.name + '</a>')
     .join("");
   $("contract-detail-attachments-empty").classList.toggle("hidden", attachments.length > 0);
 
@@ -802,18 +849,20 @@ function closeContractDetailModal() {
 function renderUsers() {
   const list = state.users || [];
   if (!$("accounts-list") || !$("accounts-empty")) return;
-  $("accounts-list").innerHTML = list.map((user) => `
-    <tr>
-      <td>${textOrDash(user.username)}</td>
-      <td>${textOrDash(user.alias)}</td>
-      <td>${textOrDash(user.role)}</td>
-      <td>${dateTimeText(user.created_at)}</td>
-      <td>
-        <button class="secondary mini-btn" type="button" data-edit-user="${user.id}">编辑</button>
-        ${user.username === "admin" ? "" : `<button class="secondary mini-btn" type="button" data-delete-user="${user.id}">删除</button>`}
-      </td>
-    </tr>
-  `).join("");
+  $("accounts-list").innerHTML = list.map((user) => {
+    const deleteButton = user.username === "admin"
+      ? ""
+      : '<button class="secondary mini-btn" type="button" data-delete-user="' + user.id + '">删除</button>';
+    return '<tr>'
+      + '<td>' + textOrDash(user.username) + '</td>'
+      + '<td>' + textOrDash(user.alias) + '</td>'
+      + '<td>' + textOrDash(user.role) + '</td>'
+      + '<td>' + dateTimeText(user.created_at) + '</td>'
+      + '<td><button class="secondary mini-btn" type="button" data-edit-user="' + user.id + '">编辑</button> '
+      + deleteButton
+      + '</td>'
+      + '</tr>';
+  }).join("");
   $("accounts-empty").classList.toggle("hidden", list.length > 0);
 }
 
@@ -822,10 +871,12 @@ function renderDetailTabs(tabName = "followups") {
   const detailModal = $("detail-modal");
   if (!detailModal) return;
   detailModal.querySelectorAll(".detail-pane").forEach((pane) => pane.classList.add("hidden"));
-  detailModal.querySelector(`#pane-${tabName}`)?.classList.remove("hidden");
+  detailModal.querySelector("#pane-" + tabName)?.classList.remove("hidden");
 }
 
 function renderDetailBasic(customer) {
+  const grid = $("detail-basic-grid");
+  if (!grid) return;
   const editButton = $("detail-basic-edit");
   const saveButton = $("detail-basic-save");
   const cancelButton = $("detail-basic-cancel");
@@ -834,22 +885,24 @@ function renderDetailBasic(customer) {
     editButton?.classList.add("hidden");
     saveButton?.classList.remove("hidden");
     cancelButton?.classList.remove("hidden");
-    $("detail-basic-grid").innerHTML = `
-      <label class="detail-edit-field"><span>客户名称</span><input id="detail-edit-name" value="${escapeHtml(customer.name)}"></label>
-      <label class="detail-edit-field"><span>客户级别</span><select id="detail-edit-level">${customerLevelOptions.map((item) => `<option ${customer.level === item ? "selected" : ""}>${item}</option>`).join("")}</select></label>
-      <label class="detail-edit-field"><span>客户行业</span><input id="detail-edit-industry" value="${escapeHtml(customer.industry)}"></label>
-      <label class="detail-edit-field"><span>客户来源</span><select id="detail-edit-source"><option value="">请选择客户来源</option>${customerSourceOptions.map((item) => `<option ${customer.source === item ? "selected" : ""}>${item}</option>`).join("")}</select></label>
-      <label class="detail-edit-field"><span>成交状态</span><select id="detail-edit-stage">${customerStageOptions.map((item) => `<option ${customer.stage === item ? "selected" : ""}>${item}</option>`).join("")}</select></label>
-      <label class="detail-edit-field"><span>电话</span><input id="detail-edit-phone" value="${escapeHtml(customer.phone)}"></label>
-      <label class="detail-edit-field"><span>网址</span><input id="detail-edit-website" value="${escapeHtml(customer.website)}"></label>
-      <label class="detail-edit-field"><span>负责人</span><input id="detail-edit-owner" value="${escapeHtml(customer.owner)}"></label>
-      <label class="detail-edit-field"><span>省</span><input id="detail-edit-province" value="${escapeHtml(customer.province)}"></label>
-      <label class="detail-edit-field"><span>市</span><input id="detail-edit-city" value="${escapeHtml(customer.city)}"></label>
-      <label class="detail-edit-field"><span>区/县</span><input id="detail-edit-district" value="${escapeHtml(customer.district)}"></label>
-      <label class="detail-edit-field detail-edit-span2"><span>详细地址</span><input id="detail-edit-address" value="${escapeHtml(customer.address)}"></label>
-      <label class="detail-edit-field"><span>下次联系时间</span><input id="detail-edit-next-contact" type="date" value="${toDateInputValue(customer.next_contact)}"></label>
-      <label class="detail-edit-field detail-edit-span2"><span>备注</span><textarea id="detail-edit-note" rows="4">${escapeHtml(customer.note)}</textarea></label>
-    `;
+    const levelOptions = customerLevelOptions.map((item) => '<option ' + (customer.level === item ? "selected" : "") + '>' + item + '</option>').join("");
+    const sourceOptions = customerSourceOptions.map((item) => '<option ' + (customer.source === item ? "selected" : "") + '>' + item + '</option>').join("");
+    const stageOptions = customerStageOptions.map((item) => '<option ' + (customer.stage === item ? "selected" : "") + '>' + item + '</option>').join("");
+    grid.innerHTML =
+      '<label class="detail-edit-field"><span>客户名称</span><input id="detail-edit-name" value="' + escapeHtml(customer.name) + '"></label>'
+      + '<label class="detail-edit-field"><span>客户级别</span><select id="detail-edit-level">' + levelOptions + '</select></label>'
+      + '<label class="detail-edit-field"><span>客户行业</span><input id="detail-edit-industry" value="' + escapeHtml(customer.industry) + '"></label>'
+      + '<label class="detail-edit-field"><span>客户来源</span><select id="detail-edit-source"><option value="">请选择客户来源</option>' + sourceOptions + '</select></label>'
+      + '<label class="detail-edit-field"><span>成交状态</span><select id="detail-edit-stage">' + stageOptions + '</select></label>'
+      + '<label class="detail-edit-field"><span>电话</span><input id="detail-edit-phone" value="' + escapeHtml(customer.phone) + '"></label>'
+      + '<label class="detail-edit-field"><span>网址</span><input id="detail-edit-website" value="' + escapeHtml(customer.website) + '"></label>'
+      + '<label class="detail-edit-field"><span>负责人</span><input id="detail-edit-owner" value="' + escapeHtml(customer.owner) + '"></label>'
+      + '<label class="detail-edit-field"><span>省</span><input id="detail-edit-province" value="' + escapeHtml(customer.province) + '"></label>'
+      + '<label class="detail-edit-field"><span>市</span><input id="detail-edit-city" value="' + escapeHtml(customer.city) + '"></label>'
+      + '<label class="detail-edit-field"><span>区/县</span><input id="detail-edit-district" value="' + escapeHtml(customer.district) + '"></label>'
+      + '<label class="detail-edit-field detail-edit-span2"><span>详细地址</span><input id="detail-edit-address" value="' + escapeHtml(customer.address) + '"></label>'
+      + '<label class="detail-edit-field"><span>下次联系时间</span><input id="detail-edit-next-contact" type="date" value="' + toDateInputValue(customer.next_contact) + '"></label>'
+      + '<label class="detail-edit-field detail-edit-span2"><span>备注</span><textarea id="detail-edit-note" rows="4">' + escapeHtml(customer.note) + '</textarea></label>';
     return;
   }
   editButton?.classList.remove("hidden");
@@ -874,7 +927,7 @@ function renderDetailBasic(customer) {
     ["更新时间", dateTimeText(customer.updated_at)],
     ["备注", customer.note],
   ];
-  $("detail-basic-grid").innerHTML = entries.map(([label, value]) => `<div class="detail-card"><span>${label}</span><strong>${textOrDash(value)}</strong></div>`).join("");
+  grid.innerHTML = entries.map(([label, value]) => '<div class="detail-card"><span>' + label + '</span><strong>' + textOrDash(value) + '</strong></div>').join("");
 }
 
 function renderDetailFollowups(customer) {
@@ -884,22 +937,23 @@ function renderDetailFollowups(customer) {
     content: customer.follow_up_record,
     created_at: customer.updated_at || customer.created_at,
     next_action: customer.next_contact,
+    publisher: customer.creator || customer.owner,
   }] : []);
-  $("detail-followup-list").innerHTML = items.length
-    ? items.map((item) => `
-      <article class="detail-log-card">
-        <div class="detail-log-head">
-          <span class="detail-log-avatar">${textOrDash(customer.owner || customer.creator || "客").slice(0, 1)}</span>
-          <div><strong>${textOrDash(customer.owner || customer.creator)}</strong><time>${dateTimeText(item.created_at)}</time></div>
-          <span class="detail-log-badge">跟进记录</span>
-        </div>
-        <p>${textOrDash(item.content)}</p>
-        <div class="detail-log-tags">
-          <span>${textOrDash(item.type)}</span>
-          <span>${item.next_action ? dateText(item.next_action) : "-"}</span>
-        </div>
-      </article>
-    `).join("")
+  const list = $("detail-followup-list");
+  if (!list) return;
+  list.innerHTML = items.length
+    ? items.map((item) => {
+      const publisher = textOrDash(item.publisher || (item.customer && (item.customer.creator || item.customer.owner)) || customer.owner || customer.creator || "客");
+      return '<article class="detail-log-card">'
+        + '<div class="detail-log-head">'
+        + '<span class="detail-log-avatar">' + publisher.slice(0, 1) + '</span>'
+        + '<div><strong>' + publisher + '</strong><time>' + dateTimeText(item.created_at) + ' · ' + textOrDash(item.publisher || (item.customer && (item.customer.creator || item.customer.owner)) || "未知发布人") + '</time></div>'
+        + '<span class="detail-log-badge">跟进记录</span>'
+        + '</div>'
+        + '<p>' + textOrDash(item.content) + '</p>'
+        + '<div class="detail-log-tags"><span>' + textOrDash(item.type) + '</span><span>' + (item.next_action ? dateText(item.next_action) : "-") + '</span></div>'
+        + '</article>';
+    }).join("")
     : '<div class="detail-empty">还没有跟进记录，先在上方发布一条吧。</div>';
 }
 
@@ -907,82 +961,57 @@ function renderDetailContacts(customer) {
   if (!$("detail-contact-list")) return;
   const contacts = getCustomerContacts(customer.id);
   $("detail-contact-list").innerHTML = contacts.length
-    ? contacts.map((item) => `
-      <article class="contact-card">
-        <strong>${textOrDash(item.name)}</strong>
-        <span>${textOrDash(item.role)}</span>
-        <span>${textOrDash(item.phone)}</span>
-        <span>${textOrDash(item.email)}</span>
-      </article>
-    `).join("")
+    ? contacts.map((item) => '<article class="contact-card"><strong>' + textOrDash(item.name) + '</strong><span>' + textOrDash(item.role) + '</span><span>' + textOrDash(item.phone) + '</span><span>' + textOrDash(item.email) + '</span></article>').join("")
     : '<div class="detail-empty">还没有联系人，先新建一个吧。</div>';
 }
 
 function renderDetailContracts(customer) {
   const contracts = getCustomerContracts(customer.id);
-  $("pane-contract").innerHTML = `
-    <div class="section-head page-section payment-head">
-      <div><h3>合同信息</h3></div>
-      <div class="section-actions"><button class="primary" id="detail-contract-create" type="button">＋ 新建合同</button></div>
-    </div>
-    ${contracts.length
-    ? `<div class="followup-list">${contracts.map((item) => `
-        <article class="detail-log-card">
-        <div class="detail-log-head">
-          <div><button class="customer-link" type="button" data-open-contract="${item.id}">${textOrDash(item.title)}</button><time>${dateTimeText(item.created_at)}</time></div>
-          <span class="detail-log-badge">${contractStatusText(item.status)}</span>
-          </div>
-          <p>金额：${money(item.amount)}</p>
-          <p>${textOrDash(item.content)}</p>
-          ${parseContractProducts(item.products).length ? `<div class="detail-log-tags">${parseContractProducts(item.products).map((product) => `<span>${textOrDash(product.name)} x ${Number(product.quantity || 0)} / ${money(contractProductTotal(product))}</span>`).join("")}</div>` : ""}
-          ${parseContractAttachments(item.attachments).length ? `<div class="detail-log-tags">${parseContractAttachments(item.attachments).map((attachment) => `<a class="contract-attachment-link" href="${attachment.url}" target="_blank" rel="noreferrer">${attachment.name}</a>`).join("")}</div>` : ""}
-          <div class="detail-log-tags">
-            <span>提交人：${textOrDash(item.submitter)}</span>
-            <span>审批人：${textOrDash(item.reviewer)}</span>
-          </div>
-        </article>
-    `).join("")}</div>`
-      : '<div class="detail-empty">暂未维护合同信息</div>'}`;
+  const contractCards = contracts.length
+    ? '<div class="followup-list">' + contracts.map((item) => {
+      const products = parseContractProducts(item.products);
+      const attachments = parseContractAttachments(item.attachments);
+      const productHtml = products.length
+        ? '<div class="detail-log-tags">' + products.map((product) => '<span>' + textOrDash(product.name) + ' x ' + Number(product.quantity || 0) + ' / ' + money(contractProductTotal(product)) + '</span>').join("") + '</div>'
+        : "";
+      const attachmentHtml = attachments.length
+        ? '<div class="detail-log-tags">' + attachments.map((attachment) => '<a class="contract-attachment-link" href="' + attachment.url + '" target="_blank" rel="noreferrer">' + attachment.name + '</a>').join("") + '</div>'
+        : "";
+      return '<article class="detail-log-card">'
+        + '<div class="detail-log-head"><div><button class="customer-link" type="button" data-open-contract="' + item.id + '">' + textOrDash(item.title) + '</button><time>' + dateTimeText(item.created_at) + '</time></div><span class="detail-log-badge">' + contractStatusText(item.status) + '</span></div>'
+        + '<p>金额：' + money(item.amount) + '</p>'
+        + '<p>' + textOrDash(item.content) + '</p>'
+        + productHtml
+        + attachmentHtml
+        + '<div class="detail-log-tags"><span>提交人：' + textOrDash(item.submitter) + '</span><span>审批人：' + textOrDash(item.reviewer) + '</span></div>'
+        + '</article>';
+    }).join("") + '</div>'
+    : '<div class="detail-empty">暂未维护合同信息</div>';
+  const pane = $("pane-contract");
+  if (!pane) return;
+  pane.innerHTML =
+    '<div class="section-head page-section payment-head"><div><h3>合同信息</h3></div><div class="section-actions"><button class="primary" id="detail-contract-create" type="button">+ 新建合同</button></div></div>'
+    + contractCards;
 }
 
 function renderDetailPayments(customer) {
   const payments = getCustomerPayments(customer.id);
   const pane = $("pane-payment");
   if (!pane) return;
-  pane.innerHTML = `
-    <div class="section-head page-section payment-head">
-      <div><h3>回款信息</h3></div>
-      <div class="section-actions"><button class="primary" id="detail-payment-create" type="button">＋ 新建回款</button></div>
-    </div>
-    <div class="table-wrap">
-      <table class="customer-detail-table payment-table">
-        <thead>
-          <tr>
-            <th>合同名称</th>
-            <th>合同金额</th>
-            <th>回款金额</th>
-            <th>审核状态</th>
-            <th>回款日期</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${payments.length ? payments.map((item) => `
-            <tr>
-              <td><button class="customer-link" type="button" data-open-contract="${item.contract ? item.contract.id : 0}">${textOrDash(item.contract_title || (item.contract ? item.contract.title : ""))}</button></td>
-              <td>${money(item.contract_amount || (item.contract ? item.contract.amount : 0))}</td>
-              <td>${money(item.payment_amount)}</td>
-              <td><span class="contract-status contract-status-${item.status || "pending"}">${paymentStatusText(item.status)}</span></td>
-              <td>${dateText(item.payment_date)}</td>
-            </tr>
-          `).join("") : `
-            <tr>
-              <td colspan="5" class="muted">暂无回款记录</td>
-            </tr>
-          `}
-        </tbody>
-      </table>
-    </div>
-  `;
+  const paymentRows = payments.length
+    ? payments.map((item) => '<tr>'
+      + '<td><button class="customer-link" type="button" data-open-contract="' + (item.contract ? item.contract.id : 0) + '">' + textOrDash(item.contract_title || (item.contract ? item.contract.title : "")) + '</button></td>'
+      + '<td>' + money(item.contract_amount || (item.contract ? item.contract.amount : 0)) + '</td>'
+      + '<td>' + money(item.payment_amount) + '</td>'
+      + '<td><span class="contract-status contract-status-' + (item.status || "pending") + '">' + paymentStatusText(item.status) + '</span></td>'
+      + '<td>' + dateText(item.payment_date) + '</td>'
+      + '</tr>').join("")
+    : '<tr><td colspan="5" class="muted">暂无回款记录</td></tr>';
+  pane.innerHTML =
+    '<div class="section-head page-section payment-head"><div><h3>回款信息</h3></div><div class="section-actions"><button class="primary" id="detail-payment-create" type="button">+ 新建回款</button></div></div>'
+    + '<div class="table-wrap"><table class="customer-detail-table payment-table"><thead><tr><th>合同名称</th><th>合同金额</th><th>回款金额</th><th>审核状态</th><th>回款日期</th></tr></thead><tbody>'
+    + paymentRows
+    + '</tbody></table></div>';
 }
 
 function fillPaymentContractOptions(customerId = state.selectedCustomerId) {
@@ -990,11 +1019,13 @@ function fillPaymentContractOptions(customerId = state.selectedCustomerId) {
   const customer = getCustomerById(customerId);
   if (!select) return;
   if (!customer) {
-    select.innerHTML = `<option value="">请选择合同编号</option>`;
+    select.innerHTML = '<option value="">请选择合同编号</option>';
     return;
   }
   const contracts = getCustomerContracts(customer.id);
-  select.innerHTML = [`<option value="">请选择合同编号</option>`, ...contracts.map((item) => `<option value="${item.id}">${escapeHtml(getContractDisplayNumber(item))}</option>`)].join("");
+  select.innerHTML = ['<option value="">请选择合同编号</option>']
+    .concat(contracts.map((item) => '<option value="' + item.id + '">' + escapeHtml(getContractDisplayNumber(item)) + '</option>'))
+    .join("");
 }
 
 function openPaymentModal(customerId = state.selectedCustomerId) {
@@ -1029,21 +1060,28 @@ function openContractDetailStandalone(contractId) {
 function openDetailModal(customerId) {
   const customer = getCustomerById(customerId);
   if (!customer) return;
+  const followupContent = $("detail-followup-content");
+  const followupNext = $("detail-followup-next");
+  const followupType = $("detail-followup-type");
   state.selectedCustomerId = customer.id;
   state.detailBasicEditing = false;
+  const canDeleteCustomer = currentRole === "admin"
+    && getCustomerContracts(customer.id).length === 0
+    && getCustomerPayments(customer.id).length === 0;
   if ($("detail-transfer-pool")) {
     $("detail-transfer-pool").textContent = isPoolCustomer(customer) ? "领用" : "转移到公海池";
   }
+  if ($("detail-delete")) $("detail-delete").classList.toggle("hidden", !canDeleteCustomer);
   $("detail-avatar").textContent = textOrDash(customer.name).slice(0, 1);
   $("detail-name").textContent = textOrDash(customer.name);
-  $("detail-phone-line").textContent = `电话：${getCustomerPhone(customer)}`;
+  $("detail-phone-line").textContent = "电话：" + getCustomerPhone(customer);
   $("detail-level").textContent = textOrDash(customer.level);
   $("detail-stage").textContent = textOrDash(customer.stage);
   $("detail-owner").textContent = textOrDash(customer.owner);
   $("detail-updated").textContent = dateTimeText(customer.updated_at);
-  $("detail-followup-content").value = "";
-  $("detail-followup-next").value = "";
-  $("detail-followup-type").value = followupTypeOptions[0];
+  if (followupContent) followupContent.value = "";
+  if (followupNext) followupNext.value = "";
+  if (followupType) followupType.value = followupTypeOptions[0];
   renderDetailBasic(customer);
   renderDetailFollowups(customer);
   renderDetailContacts(customer);
@@ -1103,11 +1141,11 @@ async function saveDetailBasicEdit() {
     payload.next_contact = toAsiaShanghaiDateTime(nextContactValue);
   }
   if (!payload.name) {
-    alert("客户名称不能为空");
+    alert("瀹㈡埛鍚嶇О涓嶈兘涓虹┖");
     return;
   }
   try {
-    const updated = await api(`/api/customers/${customer.id}`, { method: "PUT", body: JSON.stringify(payload) });
+    const updated = await api("/api/customers/" + customer.id, { method: "PUT", body: JSON.stringify(payload) });
     const index = state.customers.findIndex((item) => Number(item.id) === Number(updated.id));
     if (index >= 0) state.customers[index] = { ...state.customers[index], ...updated };
     state.detailBasicEditing = false;
@@ -1162,7 +1200,7 @@ async function submitDetailContact() {
     email: $("detail-contact-email").value.trim(),
   };
   if (!payload.name) {
-    alert("请输入联系人姓名");
+    alert("璇疯緭鍏ヨ仈绯讳汉濮撳悕");
     return;
   }
   try {
@@ -1195,8 +1233,28 @@ async function handleTransferToPool() {
   }
 }
 
+async function handleDeleteCustomer() {
+  if (!state.selectedCustomerId) return;
+  const customer = getCustomerById(state.selectedCustomerId);
+  if (!customer) return;
+  if (currentRole !== "admin") {
+    alert("仅管理员可以删除客户");
+    return;
+  }
+  if (!confirm("确定删除客户“" + textOrDash(customer.name) + "”吗？")) return;
+  try {
+    await deleteCustomer(customer.id);
+    closeDetailModal();
+    await load();
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
 function fillSelect(select, options, placeholder) {
-  select.innerHTML = [`<option value="">${placeholder}</option>`, ...options.map((item) => `<option value="${item}">${item}</option>`)].join("");
+  select.innerHTML = ['<option value="">' + placeholder + '</option>']
+    .concat(options.map((item) => '<option value="' + item + '">' + item + '</option>'))
+    .join("");
 }
 
 function enableHorizontalDragScroll(selector) {
@@ -1258,7 +1316,7 @@ function setupRegionSelectors() {
   citySelect.addEventListener("change", () => {
     const districts = regionOptions[provinceSelect.value]?.[citySelect.value] || [];
     districtSelect.disabled = districts.length === 0;
-    fillSelect(districtSelect, districts, districts.length ? "请选择区" : "请先选择市");
+    fillSelect(districtSelect, districts, districts.length ? "请选择区/县" : "请先选择市");
   });
 }
 
@@ -1274,14 +1332,14 @@ function fillCustomerFormRegion(province, city, district) {
   citySelect.value = city || "";
   const districts = regionOptions[provinceSelect.value]?.[citySelect.value] || [];
   districtSelect.disabled = districts.length === 0;
-  fillSelect(districtSelect, districts, districts.length ? "请选择区" : "请先选择市");
+  fillSelect(districtSelect, districts, districts.length ? "请选择区/县" : "请先选择市");
   districtSelect.value = district || "";
 }
 
 function resetCustomerFormMode() {
   state.editingCustomerId = null;
   $("customer-form-title").textContent = "新建客户";
-  $("customer-form-submit").textContent = "保存客户";
+  $("customer-form-submit").textContent = "淇濆瓨瀹㈡埛";
 }
 
 function openModal() {
@@ -1358,7 +1416,7 @@ function openContractModal(customerId = 0) {
     $("contract-order-date").value = toDateInputValue(new Date());
   }
   if ($("contract-file-list")) {
-    $("contract-file-list").textContent = "暂未选择附件";
+    $("contract-file-list").textContent = "鏆傛湭閫夋嫨闄勪欢";
     $("contract-file-list").classList.remove("has-files");
   }
   $("contract-modal")?.classList.remove("hidden");
@@ -1505,17 +1563,18 @@ $("contract-attachments")?.addEventListener("change", (event) => {
   const box = $("contract-file-list");
   if (!box) return;
   if (!files.length) {
-    box.textContent = "暂未选择附件";
+    box.textContent = "鏆傛湭閫夋嫨闄勪欢";
     box.classList.remove("has-files");
     return;
   }
   box.classList.add("has-files");
-  box.innerHTML = files.map((file) => `<span class="contract-file-chip">${escapeHtml(file.name)}</span>`).join("");
+  box.innerHTML = files.map((file) => '<span class="contract-file-chip">' + escapeHtml(file.name) + '</span>').join("");
 });
 $("detail-close")?.addEventListener("click", closeDetailModal);
 $("detail-followup-submit")?.addEventListener("click", submitDetailFollowup);
 $("detail-contact-submit")?.addEventListener("click", submitDetailContact);
 $("detail-transfer-pool")?.addEventListener("click", handleTransferToPool);
+$("detail-delete")?.addEventListener("click", handleDeleteCustomer);
 $("detail-basic-edit")?.addEventListener("click", openDetailBasicEdit);
 $("detail-basic-cancel")?.addEventListener("click", cancelDetailBasicEdit);
 $("detail-basic-save")?.addEventListener("click", saveDetailBasicEdit);
@@ -1556,6 +1615,11 @@ $("more-select")?.addEventListener("change", async (event) => {
   const action = event.target.value;
   if (action === "import") $("import-file").click();
   if (action === "export") {
+    if (currentRole !== "admin") {
+      alert("仅管理员可以导出客户");
+      event.target.value = "";
+      return;
+    }
     try {
       await exportCustomers();
     } catch (err) {
@@ -1571,10 +1635,10 @@ $("import-file")?.addEventListener("change", async (event) => {
   showImportProgressModal();
   try {
     const result = await importCustomers(file, setImportProgress);
-    setImportProgress(100, "导入完成");
+    setImportProgress(100, "瀵煎叆瀹屾垚");
     if ($("import-progress-summary")) {
       $("import-progress-summary").classList.remove("hidden");
-      $("import-progress-summary").textContent = `成功 ${result.imported} 条，跳过 ${result.skipped} 条`;
+      $("import-progress-summary").textContent = "成功 " + result.imported + " 条，跳过 " + result.skipped + " 条";
     }
     renderImportErrors(result.errors || []);
     event.target.value = "";
@@ -1583,7 +1647,7 @@ $("import-file")?.addEventListener("change", async (event) => {
       window.setTimeout(hideImportProgressModal, 1200);
     }
   } catch (err) {
-    setImportProgress(100, "导入失败");
+    setImportProgress(100, "瀵煎叆澶辫触");
     if ($("import-progress-summary")) {
       $("import-progress-summary").classList.remove("hidden");
       $("import-progress-summary").textContent = err.message;
@@ -1602,11 +1666,11 @@ $("customer-form")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(event.target).entries());
   if (!String(data.name || "").trim()) {
-    alert("客户名称不能为空");
+    alert("瀹㈡埛鍚嶇О涓嶈兘涓虹┖");
     return;
   }
   if (!String(data.next_contact || "").trim()) {
-    alert("下次联系时间不能为空");
+    alert("下次联系时间涓嶈兘涓虹┖");
     return;
   }
   if (data.next_contact) {
@@ -1614,7 +1678,7 @@ $("customer-form")?.addEventListener("submit", async (event) => {
   }
   try {
     if (state.editingCustomerId) {
-      const updated = await api(`/api/customers/${state.editingCustomerId}`, { method: "PUT", body: JSON.stringify(data) });
+      const updated = await api("/api/customers/" + state.editingCustomerId, { method: "PUT", body: JSON.stringify(data) });
       const index = state.customers.findIndex((item) => Number(item.id) === Number(updated.id));
       if (index >= 0) state.customers[index] = { ...state.customers[index], ...updated };
     } else {
@@ -1826,7 +1890,7 @@ document.addEventListener("click", async (event) => {
   if (deleteUserButton) {
     if (!confirm("确定删除这个账户吗？")) return;
     try {
-      await api(`/api/users/${deleteUserButton.getAttribute("data-delete-user")}`, { method: "DELETE", body: "{}" });
+      await api("/api/users/" + deleteUserButton.getAttribute("data-delete-user"), { method: "DELETE", body: "{}" });
       await loadUsers();
     } catch (err) {
       alert(err.message);
@@ -1862,7 +1926,7 @@ document.addEventListener("input", (event) => {
     ...state.contractProducts[index],
     [field]: value,
   };
-  const totalNode = document.querySelector(`[data-contract-product-total="${index}"]`);
+  const totalNode = document.querySelector('[data-contract-product-total="' + index + '"]');
   if (totalNode) {
     totalNode.textContent = money(contractProductTotal(state.contractProducts[index]));
   }
@@ -1907,3 +1971,7 @@ async function bootstrapApp() {
 }
 
 bootstrapApp();
+
+
+
+

@@ -47,30 +47,31 @@ type Activity struct {
 	Type       string    `orm:"size(30)" json:"type"`
 	Content    string    `orm:"type(text)" json:"content"`
 	NextAction string    `orm:"size(200);null" json:"next_action"`
+	Publisher  string    `orm:"size(50);null" json:"publisher"`
 	CreatedAt  time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`
 }
 
 type Contract struct {
-	Id          int       `orm:"auto" json:"id"`
-	Customer    *Customer `orm:"rel(fk);on_delete(cascade)" json:"customer,omitempty"`
-	SerialNo    string    `orm:"size(80);null" json:"serial_no"`
-	Title       string    `orm:"size(120)" json:"title"`
-	BusinessName string   `orm:"size(120);null" json:"business_name"`
-	Amount      float64   `orm:"digits(12);decimals(2);default(0)" json:"amount"`
-	OrderDate   time.Time `orm:"type(datetime);null" json:"order_date"`
-	StartDate   time.Time `orm:"type(datetime);null" json:"start_date"`
-	EndDate     time.Time `orm:"type(datetime);null" json:"end_date"`
-	CustomerSigner string `orm:"size(80);null" json:"customer_signer"`
-	CompanySigner  string `orm:"size(80);null" json:"company_signer"`
-	Content     string    `orm:"type(text);null" json:"content"`
-	Attachments string    `orm:"type(text);null" json:"attachments"`
-	Products    string    `orm:"type(text);null" json:"products"`
-	Status      string    `orm:"size(20);default(pending)" json:"status"`
-	Submitter   string    `orm:"size(50)" json:"submitter"`
-	Reviewer    string    `orm:"size(50);null" json:"reviewer"`
-	ReviewNote  string    `orm:"type(text);null" json:"review_note"`
-	CreatedAt   time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`
-	ReviewedAt  time.Time `orm:"type(datetime);null" json:"reviewed_at"`
+	Id             int       `orm:"auto" json:"id"`
+	Customer       *Customer `orm:"rel(fk);on_delete(cascade)" json:"customer,omitempty"`
+	SerialNo       string    `orm:"size(80);null" json:"serial_no"`
+	Title          string    `orm:"size(120)" json:"title"`
+	BusinessName   string    `orm:"size(120);null" json:"business_name"`
+	Amount         float64   `orm:"digits(12);decimals(2);default(0)" json:"amount"`
+	OrderDate      time.Time `orm:"type(datetime);null" json:"order_date"`
+	StartDate      time.Time `orm:"type(datetime);null" json:"start_date"`
+	EndDate        time.Time `orm:"type(datetime);null" json:"end_date"`
+	CustomerSigner string    `orm:"size(80);null" json:"customer_signer"`
+	CompanySigner  string    `orm:"size(80);null" json:"company_signer"`
+	Content        string    `orm:"type(text);null" json:"content"`
+	Attachments    string    `orm:"type(text);null" json:"attachments"`
+	Products       string    `orm:"type(text);null" json:"products"`
+	Status         string    `orm:"size(20);default(pending)" json:"status"`
+	Submitter      string    `orm:"size(50)" json:"submitter"`
+	Reviewer       string    `orm:"size(50);null" json:"reviewer"`
+	ReviewNote     string    `orm:"type(text);null" json:"review_note"`
+	CreatedAt      time.Time `orm:"auto_now_add;type(datetime)" json:"created_at"`
+	ReviewedAt     time.Time `orm:"type(datetime);null" json:"reviewed_at"`
 }
 
 type Payment struct {

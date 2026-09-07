@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
@@ -15,7 +15,7 @@
   <div class="shell">
     <aside class="sidebar">
       <div class="brand"><span class="brand-mark">N</span><span id="brand-name">northstar<span class="dot">.</span></span></div>
-      <div class="workspace"><span id="workspace-name">销售工作台</span> <span>⌄</span></div>
+      <div class="workspace"><span id="workspace-name">销售工作台</span> <span>◷</span></div>
       <nav>
         <a class="active" href="#overview"><span>◷</span> 总览</a>
         <a href="#customers"><span>◷</span> 客户管理</a>
@@ -24,7 +24,7 @@
         <a href="#activities"><span>◷</span> 跟进记录</a>
         <a href="#contracts"><span>◷</span> 合同管理 <b id="contract-total">0</b></a>
         <a id="payment-approvals-nav" class="hidden" href="#payment-approvals"><span>◷</span> 回款管理 <b id="payment-approval-total">0</b></a>
-        <a id="accounts-nav" class="hidden" href="#accounts"><span>⌘</span> 账户管理</a>
+        <a id="accounts-nav" class="hidden" href="#accounts"><span>◷</span> 账户管理</a>
       </nav>
       <div class="sidebar-bottom">
         <div class="team-title">我的团队</div>
@@ -34,16 +34,16 @@
 
     <main class="main">
       <header class="topbar">
-        <div><p class="eyebrow">THURSDAY, AUGUST 20, 2026</p><h1 id="page-title">销售总览</h1></div>
-        <div class="top-actions"><button class="icon-btn">⌕</button><button class="icon-btn notice">⚑</button></div>
+        <div><p class="eyebrow" id="topbar-date"></p><h1 id="page-title">销售总览</h1></div>
+        <div class="top-actions"><button class="icon-btn">⟳</button><button class="icon-btn notice">•</button></div>
       </header>
 
       <section id="overview" class="content">
-        <div class="welcome"><div><span class="pill">本周状态良好</span><h2>下午好</h2><p>这里是你的销售全景，继续保持这个节奏。</p></div><div class="sun">☼</div></div>
+        <div class="welcome"><div><span class="pill">本周状态良好</span><h2>下午好</h2><p>这里是你的销售全景，继续保持这个节奏。</p></div><div class="sun">☀</div></div>
         <div class="metric-grid" id="overview-metrics"></div>
         <div class="section-head"><div><h3>重点客户</h3><p>最近有活动的客户与商机</p></div><button class="text-btn" onclick="location.hash='customers'">查看全部客户 <span>→</span></button></div>
         <div class="panel">
-          <div class="table-toolbar"><div class="tabs"><button class="tab active" data-stage="">全部客户 <b id="all-count">0</b></button><button class="tab" data-stage="洽谈中">洽谈中</button><button class="tab" data-stage="已成交">已成交</button></div><label class="search">⌕ <input id="search" placeholder="搜索客户名称..."></label></div>
+          <div class="table-toolbar"><div class="tabs"><button class="tab active" data-stage="">全部客户 <b id="all-count">0</b></button><button class="tab" data-stage="洽谈中">洽谈中</button><button class="tab" data-stage="已成交">已成交</button></div><label class="search">⌕<input id="search" placeholder="搜索客户名称..."></label></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>客户名称</th><th>客户行业</th><th>负责人</th><th>成交状态</th><th>下次联系时间</th><th>更新时间</th></tr></thead>
@@ -55,11 +55,11 @@
       </section>
 
       <section id="customers" class="content hidden">
-        <div class="section-head page-section"><div><h2>客户管理</h2><p>完整展示全部客户字段，不提供删除操作。</p></div><div class="section-actions"><button class="primary" id="add-btn-2">＋ 新建客户</button><select class="more-select" id="more-select"><option value="">更多</option><option value="import">导入客户</option><option value="export">导出客户</option></select></div></div>
+        <div class="section-head page-section"><div><h2>客户管理</h2><p>完整展示全部客户字段，不提供删除操作。</p></div><div class="section-actions"><button class="primary" id="add-btn-2">＋ 新建客户</button><select class="more-select" id="more-select"><option value="">更多</option><option value="import">导入客户</option><option value="export" id="export-customers-option">导出客户</option></select></div></div>
         <div class="panel">
           <div class="table-toolbar">
             <div class="toolbar-filters">
-              <label class="search wide">⌕ <input id="search-2" placeholder="搜索客户名称..."></label>
+              <label class="search wide">⌕<input id="search-2" placeholder="搜索客户名称..."></label>
               <label class="list-filter">
                 <span>成交状态</span>
                 <select id="customer-stage-filter">
@@ -79,16 +79,12 @@
                   <th>成交状态</th>
                   <th>电话</th>
                   <th>跟进记录</th>
-                  <th>网址</th>
                   <th>下次联系时间</th>
                   <th>备注</th>
                   <th>创建人</th>
                   <th>更新时间</th>
                   <th>创建时间</th>
                   <th>负责人</th>
-                  <th>省</th>
-                  <th>市</th>
-                  <th>区/县</th>
                   <th>详细地址</th>
                 </tr>
               </thead>
@@ -100,7 +96,7 @@
             <div class="pagination-actions">
               <button class="secondary pagination-btn" id="customer-prev" type="button">上一页</button>
               <span class="pagination-current" id="customer-page-current">1 / 1</span>
-              <label class="page-jump">跳转到 <input id="customer-page-input" type="number" min="1" inputmode="numeric"></label>
+              <label class="page-jump">跳转到<input id="customer-page-input" type="number" min="1" inputmode="numeric"></label>
               <button class="secondary pagination-btn" id="customer-page-go" type="button">前往</button>
               <button class="secondary pagination-btn" id="customer-next" type="button">下一页</button>
             </div>
@@ -109,15 +105,15 @@
       </section>
 
       <section id="todos" class="content hidden">
-        <div class="section-head page-section"><div><h2>待办事项</h2><p id="todo-summary">当天需要联系的客户：0 个</p></div></div>
+        <div class="section-head page-section"><div><h2>待办事项</h2><p id="todo-summary">当天及逾期待联系的客户：</p></div></div>
         <div class="panel">
-          <div class="table-toolbar"><label class="search wide">⌕ <input id="todo-search" placeholder="搜索待办客户名称..."></label></div>
+          <div class="table-toolbar"><label class="search wide">⌕<input id="todo-search" placeholder="搜索待办客户名称..."></label></div>
           <div class="table-wrap">
             <table>
               <thead><tr><th>客户名称</th><th>负责人</th><th>成交状态</th><th>电话</th><th>下次联系时间</th><th>创建人</th></tr></thead>
               <tbody id="todo-list"></tbody>
             </table>
-            <div class="empty" id="todo-empty">未来 2 天内暂无待联系客户。</div>
+            <div class="empty" id="todo-empty">暂无当天及逾期待联系客户。</div>
           </div>
         </div>
       </section>
@@ -125,7 +121,7 @@
       <section id="pool" class="content hidden">
         <div class="section-head page-section"><div><h2>公海池</h2><p>集中展示未分配负责人的客户，方便团队认领和重新分配。</p></div></div>
         <div class="panel">
-          <div class="table-toolbar"><label class="search wide">⌕ <input id="pool-search" placeholder="搜索公海池客户名称..."></label></div>
+          <div class="table-toolbar"><label class="search wide">⌕<input id="pool-search" placeholder="搜索公海池客户名称..."></label></div>
           <div class="table-wrap">
             <table class="customer-detail-table">
               <thead>
@@ -136,7 +132,6 @@
                   <th>客户来源</th>
                   <th>成交状态</th>
                   <th>电话</th>
-                  <th>网址</th>
                   <th>下次联系时间</th>
                   <th>备注</th>
                   <th>创建人</th>
@@ -144,9 +139,6 @@
                   <th>创建时间</th>
                   <th>负责人</th>
                   <th>跟进记录</th>
-                  <th>省</th>
-                  <th>市</th>
-                  <th>区/县</th>
                   <th>详细地址</th>
                 </tr>
               </thead>
@@ -212,7 +204,7 @@
       <button type="button" class="close" id="close-modal">×</button>
       <p class="eyebrow">CUSTOMER PROFILE</p>
       <h2 id="customer-form-title">新建客户</h2>
-      <p class="modal-sub">统一按标准维度创建客户资料。</p>
+      <p class="modal-sub">按统一标准创建客户资料。</p>
       <div class="form-grid">
         <label>客户名称*<input name="name" required placeholder="例如：远山科技"></label>
         <label>客户级别<select name="level"><option>重点</option><option selected>普通</option><option>低优先级</option></select></label>
@@ -221,16 +213,16 @@
         <label>成交状态<select name="stage"><option>未成交</option><option>潜在客户</option><option>洽谈中</option><option>方案报价</option><option>已成交</option><option>暂不跟进</option></select></label>
         <label>负责人<input name="owner" placeholder="例如：张三"></label>
         <label>电话<input name="phone" placeholder="例如：0755-88886666"></label>
-        <label>网址<input name="website" placeholder="例如：https://example.com"></label>
+        <label class="hidden">网址<input name="website" placeholder="例如：https://example.com"></label>
         <label>下次联系时间*<input name="next_contact" type="date" required></label>
         <input name="creator" id="creator-input" type="hidden">
         <input id="created-at-preview" type="hidden">
         <input id="updated-at-preview" type="hidden">
-        <label>省<select name="province" id="province-select"><option value="">请选择省</option></select></label>
-        <label>市<select name="city" id="city-select" disabled><option value="">请先选择省</option></select></label>
-        <label>区<select name="district" id="district-select" disabled><option value="">请先选择市</option></select></label>
-        <label class="full">详细地址<input name="address" placeholder="例如：科技园中区 8 栋 1201"></label>
-        <label class="full">跟进记录<textarea name="follow_up_record" rows="3" placeholder="首次沟通、关键需求、下一步计划..."></textarea></label>
+        <label class="hidden">省<select name="province" id="province-select"><option value="">请选择省</option></select></label>
+        <label class="hidden">市<select name="city" id="city-select" disabled><option value="">请先选择省</option></select></label>
+        <label class="hidden">区/县<select name="district" id="district-select" disabled><option value="">请先选择市</option></select></label>
+        <label class="full">详细地址<input name="address" placeholder="例如：科技园中区8栋1201"></label>
+        <label class="full">跟进记录<textarea name="follow_up_record" rows="3" placeholder="首次沟通、关键需求、下一步计划"></textarea></label>
       </div>
       <label class="full">备注<textarea name="note" rows="3" placeholder="补充说明、风险提示、客户背景等"></textarea></label>
       <div class="modal-actions"><button type="button" class="secondary" id="cancel-modal">取消</button><button class="primary" id="customer-form-submit" type="submit">保存客户</button></div>
@@ -245,11 +237,12 @@
           <span class="detail-avatar" id="detail-avatar">客</span>
           <div>
             <h2 id="detail-name">客户名称</h2>
-            <p id="detail-phone-line">电话：-</p>
+            <p id="detail-phone-line">电话：</p>
           </div>
         </div>
         <div class="detail-actions">
           <button class="secondary action-blue" id="detail-transfer-pool" type="button">转移到公海池</button>
+          <button class="secondary action-danger hidden" id="detail-delete" type="button">删除</button>
         </div>
       </div>
 
@@ -365,7 +358,7 @@
             </label>
             <label class="contract-field">
               <span>商机名称</span>
-              <input name="business_name" placeholder="+添加" disabled>
+              <input name="business_name" placeholder="添加" disabled>
             </label>
             <label class="contract-field">
               <span>下单时间</span>
@@ -385,11 +378,11 @@
             </label>
             <label class="contract-field">
               <span>客户签约人</span>
-              <input name="customer_signer" placeholder="+添加">
+              <input name="customer_signer" placeholder="添加">
             </label>
             <label class="contract-field">
               <span>公司签约人</span>
-              <input name="company_signer" placeholder="+添加员工">
+              <input name="company_signer" placeholder="添加员工">
             </label>
             <label class="contract-field contract-span-2">
               <span>备注</span>
@@ -421,7 +414,7 @@
                 <span>标准价格</span>
                 <span>售价</span>
                 <span>数量</span>
-                <span>折扣（%）</span>
+                <span>折扣</span>
                 <span>合计</span>
                 <span>操作</span>
               </div>
@@ -433,7 +426,7 @@
       </div>
 
       <div class="modal-actions contract-actions">
-        <button class="primary" type="submit">提交审核</button>
+        <button class="primary" type="submit">提交审批</button>
         <button class="secondary contract-draft-btn" id="contract-save-draft" type="button">保存草稿</button>
         <button type="button" class="secondary contract-cancel-btn" id="contract-cancel-btn">取消</button>
       </div>
@@ -449,10 +442,10 @@
         <label>用户名<input name="username" required></label>
         <label>别名<input name="alias"></label>
         <label>密码<input id="account-create-password" name="password" type="password" required></label>
-        <label>角色<select name="role"><option value="user">user</option><option value="admin">admin</option></select></label>
+        <label>角色<select name="role"><option value="user">普通用户</option><option value="admin">管理员</option></select></label>
       </div>
       <label class="password-toggle"><input id="account-create-password-toggle" type="checkbox"> 显示密码</label>
-      <p class="login-hint">密码至少 8 位，且必须包含大写字母、小写字母、数字和特殊字符。</p>
+      <p class="login-hint">密码至少 8 位，并包含大小写字母、数字和特殊字符。</p>
       <div class="modal-actions"><button type="button" class="secondary" id="cancel-account-create-modal">取消</button><button class="primary" type="submit">保存账户</button></div>
     </form>
   </div>
@@ -470,7 +463,7 @@
         <label>新密码<input id="account-edit-password" name="password" type="password" placeholder="留空则不修改"></label>
       </div>
       <label class="password-toggle"><input id="account-edit-password-toggle" type="checkbox"> 显示密码</label>
-      <p class="login-hint">新密码至少 8 位，且必须包含大写字母、小写字母、数字和特殊字符。</p>
+      <p class="login-hint">新密码至少 8 位，并包含大小写字母、数字和特殊字符。</p>
       <div class="modal-actions"><button type="button" class="secondary" id="cancel-account-edit-modal">取消</button><button class="primary" type="submit">保存修改</button></div>
     </form>
   </div>
@@ -486,7 +479,7 @@
         <label>确认新密码<input id="change-password-confirm" name="confirm_password" type="password" required></label>
       </div>
       <label class="password-toggle"><input id="change-password-toggle" type="checkbox"> 显示密码</label>
-      <p class="login-hint">新密码至少 8 位，且必须包含大写字母、小写字母、数字和特殊字符。</p>
+      <p class="login-hint">新密码至少 8 位，并包含大小写字母、数字和特殊字符。</p>
       <div class="modal-actions"><button type="button" class="secondary" id="cancel-change-password-modal">取消</button><button class="primary" type="submit">保存密码</button></div>
     </form>
   </div>
@@ -519,7 +512,7 @@
           <span class="detail-avatar" id="contract-detail-avatar">合</span>
           <div>
             <h2 id="contract-detail-title">合同名称</h2>
-            <p id="contract-detail-customer">客户：-</p>
+            <p id="contract-detail-customer">客户：</p>
           </div>
         </div>
       </div>
@@ -548,7 +541,7 @@
                 <span>标准价格</span>
                 <span>售价</span>
                 <span>数量</span>
-                <span>折扣（%）</span>
+                <span>折扣</span>
                 <span>合计</span>
                 <span>备注</span>
               </div>
@@ -574,6 +567,28 @@
     </div>
   </div>
 
-  <script src="/js/app.js"></script>
+  <script src="/js/app.js?v=20260905-5"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

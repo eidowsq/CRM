@@ -178,6 +178,7 @@
 .payment-customer-options{max-height:220px;overflow:auto;margin-top:8px;display:grid;gap:4px}
 .payment-customer-option{border:0;background:#fff;padding:10px 12px;border-radius:8px;text-align:left;font:inherit;font-size:13px;color:#263532;cursor:pointer}
 .payment-customer-option:hover,.payment-customer-option.active{background:#eef4ff;color:#3d6fd8}
+.action-danger{background:#ffe9e9;color:#c0392b}
 .payment-customer-empty{padding:10px 12px;color:#97a29f;font-size:12px}
 .contract-status{display:inline-flex;align-items:center;justify-content:center;min-width:64px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:600}
 .contract-status-pending{background:#fff1f1;color:#d83c3c}

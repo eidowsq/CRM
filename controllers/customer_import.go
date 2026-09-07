@@ -140,6 +140,7 @@ func (c *CustomerController) Import() {
 				Type:       "跟进记录",
 				Content:    customer.FollowUpRecord,
 				NextAction: nextAction,
+				Publisher:  currentUser(c.Ctx.Request),
 				CreatedAt:  customer.UpdatedAt,
 			}
 			if activity.CreatedAt.IsZero() {
@@ -165,6 +166,11 @@ func (c *CustomerController) Import() {
 }
 
 func (c *CustomerController) Export() {
+	if currentRole(c.Ctx.Request) != "admin" {
+		c.error("仅管理员可以导出客户", http.StatusForbidden)
+		return
+	}
+
 	var customers []models.Customer
 	_, err := orm.NewOrm().QueryTable(new(models.Customer)).OrderBy("-updated_at").All(&customers)
 	if err != nil {

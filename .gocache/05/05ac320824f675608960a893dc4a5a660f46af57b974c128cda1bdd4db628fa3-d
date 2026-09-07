@@ -1,0 +1,12 @@
+./activity.go
+./auth.go
+./common.go
+./config.go
+./contact.go
+./contract.go
+./customer.go
+./customer_import.go
+./dashboard.go
+./payment.go
+./register.go
+./user.go

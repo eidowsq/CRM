@@ -7,8 +7,8 @@ import (
 
 	"crm/controllers"
 	"crm/models"
-	"crm/security"
 	_ "crm/routers"
+	"crm/security"
 
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/server/web"
@@ -58,6 +58,7 @@ func runApp() {
 		fmt.Printf("database migration failed: %v\n", err)
 		os.Exit(1)
 	}
+	ensureActivitySchema()
 	ensureContractSchema()
 	ensureUserSchema()
 	migrateUserPasswords()
@@ -179,6 +180,15 @@ func ensureContractSchema() {
 	if err := orm.Exec("ALTER TABLE contract ADD COLUMN products LONGTEXT NULL"); err != nil {
 		if !strings.Contains(strings.ToLower(err.Error()), "duplicate column") {
 			fmt.Printf("contract schema migration failed: %v\n", err)
+			os.Exit(1)
+		}
+	}
+}
+
+func ensureActivitySchema() {
+	if err := orm.Exec("ALTER TABLE activity ADD COLUMN publisher VARCHAR(50) NULL"); err != nil {
+		if !strings.Contains(strings.ToLower(err.Error()), "duplicate column") {
+			fmt.Printf("activity schema migration failed: %v\n", err)
 			os.Exit(1)
 		}
 	}

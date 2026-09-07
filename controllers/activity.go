@@ -36,7 +36,14 @@ func (c *ActivityController) Create() {
 		c.error("客户和跟进内容不能为空", 400)
 		return
 	}
-	activity := models.Activity{Customer: &models.Customer{Id: input.CustomerID}, Type: input.Type, Content: input.Content, NextAction: input.NextAction, CreatedAt: time.Now()}
+	activity := models.Activity{
+		Customer:   &models.Customer{Id: input.CustomerID},
+		Type:       input.Type,
+		Content:    input.Content,
+		NextAction: input.NextAction,
+		Publisher:  currentUser(c.Ctx.Request),
+		CreatedAt:  time.Now(),
+	}
 	if _, err := orm.NewOrm().Insert(&activity); err != nil {
 		c.error(err.Error(), 500)
 		return

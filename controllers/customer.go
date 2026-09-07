@@ -154,8 +154,27 @@ func (c *CustomerController) Claim() {
 }
 
 func (c *CustomerController) Delete() {
+	if currentRole(c.Ctx.Request) != "admin" {
+		c.error("仅管理员可以删除客户", 403)
+		return
+	}
 	id, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
-	if _, err := orm.NewOrm().Delete(&models.Customer{Id: id}); err != nil {
+	o := orm.NewOrm()
+	if count, err := o.QueryTable(new(models.Contract)).Filter("customer_id", id).Count(); err != nil {
+		c.error(err.Error(), 500)
+		return
+	} else if count > 0 {
+		c.error("该客户已绑定合同，不能删除", 400)
+		return
+	}
+	if count, err := o.QueryTable(new(models.Payment)).Filter("customer_id", id).Count(); err != nil {
+		c.error(err.Error(), 500)
+		return
+	} else if count > 0 {
+		c.error("该客户已绑定回款，不能删除", 400)
+		return
+	}
+	if _, err := o.Delete(&models.Customer{Id: id}); err != nil {
 		c.error(err.Error(), 500)
 		return
 	}
