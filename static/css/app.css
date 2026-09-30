@@ -33,16 +33,39 @@
 .section-actions{display:flex;gap:10px;align-items:center}
 .customer-detail-table{min-width:1000px}
 .customer-detail-table td,.customer-detail-table th{vertical-align:top}
-.contract-table{min-width:1000px;table-layout:fixed}
-.contract-table th,.contract-table td{padding-left:2px;padding-right:2px}
-.contract-table th:nth-child(1),.contract-table td:nth-child(1){width:110px}
-.contract-table th:nth-child(2),.contract-table td:nth-child(2){width:140px}
-.contract-table th:nth-child(3),.contract-table td:nth-child(3){width:90px}
-.contract-table th:nth-child(4),.contract-table td:nth-child(4){width:90px}
-.contract-table th:nth-child(5),.contract-table td:nth-child(5){width:90px}
-.contract-table th:nth-child(6),.contract-table td:nth-child(6){width:90px}
-.contract-table th:nth-child(7),.contract-table td:nth-child(7){width:100px}
-.contract-table th:nth-child(8),.contract-table td:nth-child(8){width:90px}
+.contract-page{padding-top:32px}
+.contract-page-head{align-items:center;margin-bottom:24px}
+.contract-page-head h2{font-size:30px;letter-spacing:-.7px;margin-top:7px}
+.contract-page-head p{font-size:13px;margin-top:8px}
+.section-kicker{display:block;color:#6f9ae3;font-size:10px;font-weight:700;letter-spacing:1.5px}
+.contract-create-btn{display:inline-flex;align-items:center;gap:5px;padding:12px 17px}
+.contract-create-btn span{font-size:18px;line-height:12px}
+.contract-panel{border-radius:16px;box-shadow:0 18px 45px rgba(24,63,55,.08)}
+.contract-list-bar{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid #edf2f0;background:#fff}
+.contract-list-bar strong{font-size:15px;color:#283936}
+.contract-list-bar span{margin-left:10px;color:#9aa8a3;font-size:12px}
+.contract-list-bar b{color:#3b82f6;font-size:13px}
+.contract-list-hint{margin-left:0!important;color:#a0aca8!important}
+.contract-table{min-width:1080px;table-layout:fixed}
+.contract-table th{padding:14px 18px;background:#f8fbfa;color:#86958f;font-size:11px;letter-spacing:.2px}
+.contract-table td{padding:17px 18px;border-top:1px solid #eef3f1;font-size:12px;vertical-align:middle}
+.contract-table tbody tr{transition:background .16s ease}
+.contract-table tbody tr:hover{background:#fbfdfc}
+.contract-table th:nth-child(1),.contract-table td:nth-child(1){width:22%}
+.contract-table th:nth-child(2),.contract-table td:nth-child(2){width:15%}
+.contract-table th:nth-child(3),.contract-table td:nth-child(3){width:12%}
+.contract-table th:nth-child(4),.contract-table td:nth-child(4){width:11%}
+.contract-table th:nth-child(5),.contract-table td:nth-child(5){width:10%}
+.contract-table th:nth-child(6),.contract-table td:nth-child(6){width:10%}
+.contract-table th:nth-child(7),.contract-table td:nth-child(7){width:14%}
+.contract-table th:nth-child(8),.contract-table td:nth-child(8){width:16%}
+.contract-title-link{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:#2d6fd0}
+.contract-title-link:hover{text-decoration:underline;color:#205bb4}
+.contract-amount{color:#263f3a;font-size:13px}
+.contract-row-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.contract-row-actions .muted{padding:6px 0}
+.payment-row-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.payment-row-actions .muted{padding:6px 0}
 .sidebar nav a[href="#pool"] b{background:#edf4ff;color:#4b84eb}
 .sidebar nav a[href="#todos"] b{background:#fff6df;color:#b67a1f}
 .sidebar nav a[href="#contracts"] b{background:#ffe7e7;color:#d83c3c}
@@ -99,20 +122,32 @@
 .user-modal{max-width:720px}
 .user-modal input[readonly]{background:#f5f8f6;color:#8a9691}
 .mini-btn{padding:8px 12px;font-size:12px}
+.danger-outline{border:1px solid #f3caca!important;background:#fff7f7!important;color:#c44f4f!important}
+.danger-outline:hover{border-color:#e89b9b!important;background:#fff0f0!important;color:#ad3737!important}
 .followup-composer{border:1px solid #e7ecea;border-radius:12px;background:#fff;overflow:hidden}
 .followup-composer textarea{width:100%;min-height:116px;border:0;outline:0;padding:18px;font:inherit;font-size:14px;resize:vertical}
 .followup-toolbar{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid #eef2f1;background:#fbfcfc}
 .followup-toolbar label{display:flex;align-items:center;gap:10px;color:#63736d;font-size:13px}
 .followup-toolbar select,.followup-toolbar input{height:38px;border:1px solid #dde7e3;border-radius:8px;padding:0 12px;font:inherit}
-.followup-toolbar .primary{margin-left:auto}
+.followup-toolbar button{height:38px;padding:0 17px;border-radius:9px;font-size:13px;line-height:1;transition:background .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.followup-toolbar button:hover{transform:translateY(-1px)}
+.followup-toolbar button:active{transform:translateY(0)}
+.followup-toolbar .primary{margin-left:auto;background:#3182ea;box-shadow:0 7px 16px rgba(49,130,234,.2)}
+.followup-toolbar .primary:hover{background:#246fd3;box-shadow:0 9px 20px rgba(49,130,234,.26)}
+.followup-toolbar .secondary{padding:0 14px;background:#fff;color:#687873;border:1px solid #dce7e2;box-shadow:none}
+.followup-toolbar .secondary:hover{background:#f3f8f5;color:#2f6f5c;border-color:#b9d9ca}
 .followup-list{margin-top:18px;border:1px solid #edf1ef;border-radius:14px;background:#fff}
 .detail-log-card{padding:22px 24px;border-top:1px solid #eef2f1}
 .detail-log-card:first-child{border-top:0}
 .detail-log-head{display:flex;align-items:center;gap:14px}
+.detail-log-actions{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .detail-log-head strong{display:block;font-size:14px}
 .detail-log-head time{display:block;color:#97a29f;font-size:12px;margin-top:5px}
 .detail-log-avatar{width:42px;height:42px;border-radius:50%;background:#3182ea;color:#fff;display:grid;place-items:center;font-size:14px;font-weight:700}
-.detail-log-badge{margin-left:auto;color:#ec8d89;background:#fff5f4;border:1px solid #f8d9d6;border-radius:999px;padding:7px 12px;font-size:12px}
+.detail-log-badge{color:#ec8d89;background:#fff5f4;border:1px solid #f8d9d6;border-radius:999px;padding:7px 12px;font-size:12px}
+.detail-log-edit{border:1px solid #d9e7fb;border-radius:7px;background:#f4f8ff;color:#3476d2;padding:6px 10px;font:inherit;font-size:12px;cursor:pointer;transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}
+.detail-log-edit:hover{background:#e8f1ff;color:#205fb9;border-color:#bcd4f5;transform:translateY(-1px)}
+.detail-log-edit:active{transform:translateY(0)}
 .detail-log-card p{margin:18px 0;color:#354440;font-size:14px;line-height:1.7}
 .detail-log-tags{display:flex;gap:12px;flex-wrap:wrap}
 .detail-log-tags span{background:#f3f6f8;color:#8a9894;border-radius:999px;padding:7px 14px;font-size:12px}
@@ -123,6 +158,7 @@
 .detail-empty{padding:40px 18px;color:#95a19d;text-align:center;background:#fbfcfc;border:1px dashed #e2e9e6;border-radius:12px}
 @media(max-width:1100px){.detail-summary{grid-template-columns:repeat(2,minmax(140px,1fr))}.detail-grid{grid-template-columns:repeat(2,minmax(180px,1fr))}}
 @media(max-width:720px){.detail-header{flex-direction:column}.detail-actions{padding-right:0}.detail-summary{grid-template-columns:1fr 1fr}.detail-grid{grid-template-columns:1fr}.detail-edit-span2{grid-column:span 1}.followup-toolbar{align-items:flex-start}.followup-toolbar .primary{margin-left:0}.contact-form-grid{grid-template-columns:1fr}.contact-card{grid-template-columns:1fr}}
+@media(max-width:720px){.contract-page-head{align-items:flex-start;gap:18px;flex-direction:column}.contract-page-head .section-actions{width:100%}.contract-create-btn{width:100%;justify-content:center}.contract-list-bar{padding:16px;align-items:flex-start;gap:10px;flex-direction:column}.contract-list-hint{margin-left:0!important}.contract-table th,.contract-table td{padding-left:14px;padding-right:14px}}
 
 .contract-modal{width:min(1020px,100%);max-height:calc(100vh - 24px);padding:0;overflow:hidden;display:flex;flex-direction:column}
 .contract-modal-body{padding:30px 28px 22px;overflow:auto}

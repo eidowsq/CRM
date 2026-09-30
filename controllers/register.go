@@ -15,10 +15,13 @@ func Register() {
 	web.Router("/api/customers/:id", &CustomerController{}, "put:Update;delete:Delete")
 	web.Router("/api/contracts", &ContractController{}, "get:List;post:Create")
 	web.Router("/api/contracts/:id/review", &ContractController{}, "post:Review")
+	web.Router("/api/contracts/:id", &ContractController{}, "delete:Delete")
 	web.Router("/api/users", &UserController{}, "get:List;post:Create")
 	web.Router("/api/users/:id", &UserController{}, "put:Update;delete:Delete")
 	web.Router("/api/contacts", &ContactController{}, "get:List;post:Create")
 	web.Router("/api/activities", &ActivityController{}, "get:List;post:Create")
+	web.Router("/api/activities/:id", &ActivityController{}, "put:Update")
 	web.Router("/api/payments", &PaymentController{}, "get:List;post:Create")
 	web.Router("/api/payments/:id/review", &PaymentController{}, "post:Review")
+	web.Router("/api/payments/:id", &PaymentController{}, "delete:Delete")
 }

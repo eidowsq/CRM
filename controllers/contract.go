@@ -42,18 +42,18 @@ func (c *ContractController) List() {
 
 func (c *ContractController) Create() {
 	var input struct {
-		CustomerID int     `json:"customer_id"`
-		SerialNo   string  `json:"serial_no"`
-		Title      string  `json:"title"`
-		BusinessName string `json:"business_name"`
-		Amount     float64 `json:"amount"`
-		OrderDate  string  `json:"order_date"`
-		StartDate  string  `json:"start_date"`
-		EndDate    string  `json:"end_date"`
-		CustomerSigner string `json:"customer_signer"`
-		CompanySigner  string `json:"company_signer"`
-		Content    string  `json:"content"`
-		Products   string  `json:"products"`
+		CustomerID     int     `json:"customer_id"`
+		SerialNo       string  `json:"serial_no"`
+		Title          string  `json:"title"`
+		BusinessName   string  `json:"business_name"`
+		Amount         float64 `json:"amount"`
+		OrderDate      string  `json:"order_date"`
+		StartDate      string  `json:"start_date"`
+		EndDate        string  `json:"end_date"`
+		CustomerSigner string  `json:"customer_signer"`
+		CompanySigner  string  `json:"company_signer"`
+		Content        string  `json:"content"`
+		Products       string  `json:"products"`
 	}
 	attachmentsJSON := "[]"
 	productsJSON := "[]"
@@ -109,22 +109,22 @@ func (c *ContractController) Create() {
 	startDate := parseDateValue(input.StartDate)
 	endDate := parseDateValue(input.EndDate)
 	contract := models.Contract{
-		Customer:    &models.Customer{Id: input.CustomerID},
-		SerialNo:    strings.TrimSpace(input.SerialNo),
-		Title:       strings.TrimSpace(input.Title),
-		BusinessName: strings.TrimSpace(input.BusinessName),
-		Amount:      input.Amount,
-		OrderDate:   orderDate,
-		StartDate:   startDate,
-		EndDate:     endDate,
+		Customer:       &models.Customer{Id: input.CustomerID},
+		SerialNo:       strings.TrimSpace(input.SerialNo),
+		Title:          strings.TrimSpace(input.Title),
+		BusinessName:   strings.TrimSpace(input.BusinessName),
+		Amount:         input.Amount,
+		OrderDate:      orderDate,
+		StartDate:      startDate,
+		EndDate:        endDate,
 		CustomerSigner: strings.TrimSpace(input.CustomerSigner),
 		CompanySigner:  strings.TrimSpace(input.CompanySigner),
-		Content:     strings.TrimSpace(input.Content),
-		Attachments: attachmentsJSON,
-		Products:    productsJSON,
-		Status:      "pending",
-		Submitter:   currentUser(c.Ctx.Request),
-		CreatedAt:   time.Now(),
+		Content:        strings.TrimSpace(input.Content),
+		Attachments:    attachmentsJSON,
+		Products:       productsJSON,
+		Status:         "pending",
+		Submitter:      currentUser(c.Ctx.Request),
+		CreatedAt:      time.Now(),
 	}
 	if _, err := orm.NewOrm().Insert(&contract); err != nil {
 		c.error(err.Error(), http.StatusInternalServerError)
@@ -249,4 +249,82 @@ func (c *ContractController) Review() {
 		return
 	}
 	c.respond(contract, http.StatusOK)
+}
+
+func (c *ContractController) Delete() {
+	id, err := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	if err != nil || id == 0 {
+		c.error("合同不存在", http.StatusBadRequest)
+		return
+	}
+
+	o := orm.NewOrm()
+	var contracts []models.Contract
+	if _, err := o.QueryTable(new(models.Contract)).Filter("id", id).All(&contracts); err != nil {
+		c.error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(contracts) == 0 {
+		c.error("合同不存在", http.StatusNotFound)
+		return
+	}
+	contract := contracts[0]
+	role := currentRole(c.Ctx.Request)
+	if role != "admin" {
+		c.error("只有管理员可以删除合同", http.StatusForbidden)
+		return
+	}
+
+	if count, err := o.QueryTable(new(models.Payment)).Filter("contract_id", id).Count(); err != nil {
+		c.error(err.Error(), http.StatusInternalServerError)
+		return
+	} else if count > 0 {
+		c.error("该合同已有回款记录，不能删除", http.StatusBadRequest)
+		return
+	}
+
+	if _, err := o.Delete(&contract); err != nil {
+		c.error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	removeContractAttachments(contract.Attachments)
+	c.respond(map[string]any{"deleted": true, "id": id}, http.StatusOK)
+}
+
+func removeContractAttachments(raw string) {
+	var attachments []contractAttachment
+	if strings.TrimSpace(raw) == "" || json.Unmarshal([]byte(raw), &attachments) != nil {
+		return
+	}
+	for _, attachment := range attachments {
+		path := contractAttachmentPath(attachment.URL)
+		if path != "" {
+			_ = os.Remove(path)
+		}
+	}
+}
+
+func contractAttachmentPath(rawURL string) string {
+	uploadRoot := strings.TrimSpace(web.AppConfig.DefaultString("uploads", "uploads"))
+	if uploadRoot == "" || filepath.IsAbs(uploadRoot) {
+		return ""
+	}
+	relativeURL := strings.TrimPrefix(filepath.ToSlash(strings.TrimSpace(rawURL)), "/")
+	expectedPrefix := filepath.ToSlash(filepath.Join(uploadRoot, "contracts")) + "/"
+	if relativeURL == "" || !strings.HasPrefix(relativeURL, expectedPrefix) {
+		return ""
+	}
+
+	root, err := filepath.Abs(filepath.Join("static", uploadRoot, "contracts"))
+	if err != nil {
+		return ""
+	}
+	target, err := filepath.Abs(filepath.Join("static", filepath.FromSlash(relativeURL)))
+	if err != nil {
+		return ""
+	}
+	if !strings.HasPrefix(target, root+string(os.PathSeparator)) {
+		return ""
+	}
+	return target
 }

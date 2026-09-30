@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"crm/models"
@@ -49,17 +50,83 @@ func (c *ActivityController) Create() {
 		return
 	}
 
-	// Keep the parent customer's latest follow-up summary in sync with the feed.
-	customer := models.Customer{Id: input.CustomerID}
-	if err := orm.NewOrm().Read(&customer); err == nil {
-		customer.FollowUpRecord = input.Content
-		if input.NextAction != "" {
-			if nextContact, err := time.ParseInLocation("2006-01-02", input.NextAction, time.Local); err == nil {
-				customer.NextContact = nextContact
-			}
-		}
-		_, _ = orm.NewOrm().Update(&customer)
-	}
+	syncCustomerLatestFollowUp(input.CustomerID)
 
 	c.respond(activity, 201)
+}
+
+func (c *ActivityController) Update() {
+	id, _ := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	o := orm.NewOrm()
+	var activities []models.Activity
+	if _, err := o.QueryTable(new(models.Activity)).
+		RelatedSel().
+		Filter("id", id).
+		All(&activities); err != nil || len(activities) == 0 {
+		c.error("跟进记录不存在", 404)
+		return
+	}
+	activity := activities[0]
+
+	var input struct {
+		Type       string `json:"type"`
+		Content    string `json:"content"`
+		NextAction string `json:"next_action"`
+	}
+	if err := decodeBody(&c.APIController, &input); err != nil {
+		c.error("请求格式不正确", 400)
+		return
+	}
+	input.Content = strings.TrimSpace(input.Content)
+	if input.Content == "" {
+		c.error("跟进内容不能为空", 400)
+		return
+	}
+
+	activity.Type = strings.TrimSpace(input.Type)
+	activity.Content = input.Content
+	activity.NextAction = strings.TrimSpace(input.NextAction)
+	if _, err := o.Update(&activity, "Type", "Content", "NextAction"); err != nil {
+		c.error(err.Error(), 500)
+		return
+	}
+	if activity.Customer != nil {
+		syncCustomerLatestFollowUp(activity.Customer.Id)
+	}
+
+	var updatedItems []models.Activity
+	if _, err := o.QueryTable(new(models.Activity)).
+		RelatedSel().
+		Filter("id", id).
+		All(&updatedItems); err == nil && len(updatedItems) > 0 {
+		c.respond(updatedItems[0], 200)
+		return
+	}
+	c.respond(activity, 200)
+}
+
+func syncCustomerLatestFollowUp(customerID int) {
+	if customerID == 0 {
+		return
+	}
+	o := orm.NewOrm()
+	var latest []models.Activity
+	if _, err := o.QueryTable(new(models.Activity)).
+		Filter("customer_id", customerID).
+		OrderBy("-created_at").
+		All(&latest); err != nil || len(latest) == 0 {
+		return
+	}
+
+	customer := models.Customer{Id: customerID}
+	if err := o.Read(&customer); err != nil {
+		return
+	}
+	customer.FollowUpRecord = latest[0].Content
+	if nextAction := strings.TrimSpace(latest[0].NextAction); nextAction != "" {
+		if nextContact, err := time.ParseInLocation("2006-01-02", nextAction, time.Local); err == nil {
+			customer.NextContact = nextContact
+		}
+	}
+	_, _ = o.Update(&customer, "FollowUpRecord", "NextContact")
 }

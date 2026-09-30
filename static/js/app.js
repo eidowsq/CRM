@@ -12,26 +12,27 @@
   selectedCustomerId: null,
   editingCustomerId: null,
   editingUserId: null,
+  editingActivityId: null,
   detailBasicEditing: false,
 };
 
 const $ = (id) => document.getElementById(id);
 
 const regionOptions = {
-  "鍖椾含甯�": {
-    "鍖椾含甯�": ["涓滃煄鍖�", "瑗垮煄鍖�", "鏈濋槼鍖�", "娴锋穩鍖�", "涓板彴鍖�", "鏄屽钩鍖�"],
+  "北京市": {
+    "北京市": ["东城区", "西城区", "朝阳区", "海淀区", "丰台区", "昌平区"],
   },
-  "涓婃捣甯�": {
-    "涓婃捣甯�": ["榛勬郸鍖�", "寰愭眹鍖�", "闀垮畞鍖�", "娴︿笢鏂板尯", "闂佃鍖�", "瀹濆北鍖�"],
+  "上海市": {
+    "上海市": ["黄浦区", "徐汇区", "长宁区", "浦东新区", "闵行区", "宝山区"],
   },
-  "骞夸笢鐪�": {
-    "骞垮窞甯�": ["澶╂渤鍖�", "瓒婄鍖�", "娴风彔鍖�", "鐧戒簯鍖�", "鐣鍖�", "榛勫煍鍖�"],
-    "娣卞湷甯�": ["鍗楀北鍖�", "绂忕敯鍖�", "缃楁箹鍖�", "瀹濆畨鍖�", "榫欏矖鍖�", "榫欏崕鍖�"],
-    "涓滆帪甯�": ["鍗楀煄琛楅亾", "涓滃煄琛楅亾", "涓囨睙琛楅亾", "闀垮畨闀�", "铏庨棬闀�", "甯稿钩闀�"],
+  "广东省": {
+    "广州市": ["天河区", "越秀区", "海珠区", "白云区", "番禺区", "黄埔区"],
+    "深圳市": ["南山区", "福田区", "罗湖区", "宝安区", "龙岗区", "龙华区"],
+    "东莞市": ["南城街道", "东城街道", "万江街道", "长安镇", "虎门镇", "常平镇"],
   },
-  "娴欐睙鐪�": {
-    "鏉窞甯�": ["瑗挎箹鍖�", "鎷卞鍖�", "涓婂煄鍖�", "婊ㄦ睙鍖�", "浣欐澀鍖�"],
-    "瀹佹尝甯�": ["娴锋洐鍖�", "姹熷寳鍖�", "閯炲窞鍖�", "闀囨捣鍖�", "鍖椾粦鍖�"],
+  "浙江省": {
+    "杭州市": ["西湖区", "拱墅区", "上城区", "滨江区", "余杭区"],
+    "宁波市": ["海曙区", "江北区", "鄞州区", "镇海区", "北仑区"],
   },
 };
 
@@ -129,7 +130,7 @@ async function api(path, options = {}) {
   const response = await fetch(path, { ...options, headers });
   const body = await response.json();
   if (!response.ok) {
-    throw new Error(body.error || "璇锋眰澶辫触");
+    throw new Error(body.error || "请求失败");
   }
   return body.data;
 }
@@ -178,7 +179,7 @@ function showImportProgressModal() {
   $("import-progress-summary")?.classList.add("hidden");
   $("import-error-panel")?.classList.add("hidden");
   if ($("import-error-list")) $("import-error-list").innerHTML = "";
-  setImportProgress(0, "姝ｅ湪鍑嗗瀵煎叆...");
+  setImportProgress(0, "正在准备导入...");
 }
 
 function hideImportProgressModal() {
@@ -246,7 +247,7 @@ async function exportCustomers() {
     },
   });
   if (!response.ok) {
-    throw new Error("瀵煎嚭澶辫触");
+    throw new Error("导出失败");
   }
   const blob = await response.blob();
   const disposition = response.headers.get("Content-Disposition") || "";
@@ -277,13 +278,17 @@ async function createContract(payload) {
   });
   const body = await response.json();
   if (!response.ok) {
-    throw new Error(body.error || "鍚堝悓鍒涘缓澶辫触");
+    throw new Error(body.error || "合同创建失败");
   }
   return body.data;
 }
 
 async function reviewContract(id, payload) {
   return api("/api/contracts/" + id + "/review", { method: "POST", body: JSON.stringify(payload) });
+}
+
+async function deleteContract(id) {
+  return api("/api/contracts/" + id, { method: "DELETE", body: "{}" });
 }
 
 async function createUser(payload) {
@@ -304,6 +309,10 @@ async function createPayment(payload) {
 
 async function reviewPayment(id, payload) {
   return api("/api/payments/" + id + "/review", { method: "POST", body: JSON.stringify(payload) });
+}
+
+async function deletePayment(id) {
+  return api("/api/payments/" + id, { method: "DELETE", body: "{}" });
 }
 
 async function transferCustomerToPool(customerId) {
@@ -450,6 +459,15 @@ function getCustomerActivities(customerId) {
     .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 }
 
+function syncCustomerLatestFollowupState(customer) {
+  const latest = getCustomerActivities(customer.id)[0];
+  if (!latest) return;
+  customer.follow_up_record = latest.content;
+  if (latest.next_action) {
+    customer.next_contact = toAsiaShanghaiDateTime(toDateInputValue(latest.next_action));
+  }
+}
+
 function getCustomerContacts(customerId) {
   return (state.contacts || [])
     .filter((item) => item && item.customer && Number(item.customer.id) === Number(customerId));
@@ -475,7 +493,7 @@ function fillPaymentCustomerOptions(selectedId = 0) {
   const customers = (state.customers || []).filter((item) => !isPoolCustomer(item));
   list.innerHTML = customers.length
     ? customers.map((item) => `<button class="payment-customer-option" type="button" data-payment-customer-option="${item.id}" data-payment-customer-name="${escapeHtml(textOrDash(item.name))}">${escapeHtml(textOrDash(item.name))}</button>`).join("")
-    : `<div class="payment-customer-empty">鏆傛棤鍙€夊鎴?/div>`;
+    : `<div class="payment-customer-empty">暂无可选客户</div>`;
   hiddenInput.value = selectedId ? String(selectedId) : "";
   const selectedCustomer = customers.find((item) => Number(item.id) === Number(selectedId));
   trigger.textContent = selectedCustomer ? textOrDash(selectedCustomer.name) : "请选择客户名称";
@@ -497,7 +515,7 @@ function fillContractCustomerOptions(selectedId = 0) {
   const customers = (state.customers || []).filter((item) => !isPoolCustomer(item));
   list.innerHTML = customers.length
     ? customers.map((item) => `<button class="payment-customer-option" type="button" data-contract-customer-option="${item.id}" data-contract-customer-name="${escapeHtml(textOrDash(item.name))}">${escapeHtml(textOrDash(item.name))}</button>`).join("")
-    : `<div class="payment-customer-empty">鏆傛棤鍙€夊鎴?/div>`;
+    : `<div class="payment-customer-empty">暂无可选客户/div>`;
   hiddenInput.value = selectedId ? String(selectedId) : "";
   const selectedCustomer = customers.find((item) => Number(item.id) === Number(selectedId));
   trigger.textContent = selectedCustomer ? textOrDash(selectedCustomer.name) : "请选择客户名称";
@@ -621,15 +639,15 @@ function renderContractProducts() {
   if (!body || !empty) return;
   body.innerHTML = (state.contractProducts || []).map((product, index) => `
     <div class="contract-product-row contract-product-body-row">
-      <input data-contract-product="${index}" data-field="name" value="${escapeHtml(product.name)}" placeholder="杈撳叆浜у搧鍚嶇О">
-      <input data-contract-product="${index}" data-field="category" value="${escapeHtml(product.category)}" placeholder="杈撳叆绫诲埆">
-      <input data-contract-product="${index}" data-field="unit" value="${escapeHtml(product.unit)}" placeholder="鍙?浠?>
+      <input data-contract-product="${index}" data-field="name" value="${escapeHtml(product.name)}" placeholder="输入产品名称">
+      <input data-contract-product="${index}" data-field="category" value="${escapeHtml(product.category)}" placeholder="输入类别">
+      <input data-contract-product="${index}" data-field="unit" value="${escapeHtml(product.unit)}" placeholder="台/件">
       <input data-contract-product="${index}" data-field="standard_price" type="number" step="0.01" min="0" value="${product.standard_price || 0}">
       <input data-contract-product="${index}" data-field="sale_price" type="number" step="0.01" min="0" value="${product.sale_price || 0}">
       <input data-contract-product="${index}" data-field="quantity" type="number" step="1" min="0" value="${product.quantity || 0}">
       <input data-contract-product="${index}" data-field="discount" type="number" step="0.01" min="0" value="${product.discount || 0}">
       <div class="readonly-cell contract-product-total" data-contract-product-total="${index}">${money(contractProductTotal(product))}</div>
-      <button class="contract-product-remove" type="button" data-remove-contract-product="${index}">鍒犻櫎</button>
+      <button class="contract-product-remove" type="button" data-remove-contract-product="${index}">删除</button>
     </div>
   `).join("");
   empty.classList.toggle("hidden", state.contractProducts.length > 0);
@@ -721,15 +739,20 @@ function renderActivities() {
 function renderContracts() {
   const list = state.contracts || [];
   if (!$("contract-list")) return;
+  if ($("contract-list-count")) $("contract-list-count").textContent = list.length;
   $("contract-list").innerHTML = list.map((item) => {
-    const actions = currentRole === "admin" && item.status === "pending"
+    const reviewActions = currentRole === "admin" && item.status === "pending"
       ? '<button class="secondary mini-btn" type="button" data-contract-review="' + item.id + '" data-action="approve">通过</button> '
         + '<button class="secondary mini-btn" type="button" data-contract-review="' + item.id + '" data-action="reject">驳回</button>'
       : '<span class="muted">' + contractStatusText(item.status) + '</span>';
+    const canDelete = currentRole === "admin";
+    const actions = '<div class="contract-row-actions">' + reviewActions
+      + (canDelete ? '<button class="danger-outline mini-btn" type="button" data-contract-delete="' + item.id + '">删除</button>' : "")
+      + '</div>';
     return '<tr>'
-      + '<td><button class="customer-link" type="button" data-open-contract="' + item.id + '">' + textOrDash(item.title) + '</button></td>'
+      + '<td><button class="customer-link contract-title-link" type="button" data-open-contract="' + item.id + '">' + textOrDash(item.title) + '</button></td>'
       + '<td>' + textOrDash(item.customer ? item.customer.name : "") + '</td>'
-      + '<td>' + money(item.amount) + '</td>'
+      + '<td><strong class="contract-amount">' + money(item.amount) + '</strong></td>'
       + '<td><span class="contract-status contract-status-' + (item.status || "pending") + '">' + contractStatusText(item.status) + '</span></td>'
       + '<td>' + textOrDash(item.submitter) + '</td>'
       + '<td>' + textOrDash(item.reviewer) + '</td>'
@@ -745,10 +768,13 @@ function renderPaymentApprovals() {
   const list = state.payments || [];
   if (!$("payment-approval-list") || !$("payment-approval-empty")) return;
   $("payment-approval-list").innerHTML = list.map((item) => {
-    const actions = currentRole === "admin" && item.status === "pending"
+    const reviewActions = currentRole === "admin" && item.status === "pending"
       ? '<button class="secondary mini-btn" type="button" data-payment-review="' + item.id + '" data-action="approve">通过</button> '
         + '<button class="secondary mini-btn" type="button" data-payment-review="' + item.id + '" data-action="reject">驳回</button>'
       : '<span class="muted">' + paymentStatusText(item.status) + '</span>';
+    const actions = '<div class="payment-row-actions">' + reviewActions
+      + (currentRole === "admin" ? '<button class="danger-outline mini-btn" type="button" data-payment-delete="' + item.id + '">删除</button>' : "")
+      + '</div>';
     return '<tr>'
       + '<td>' + textOrDash(item.serial_no) + '</td>'
       + '<td>' + textOrDash(item.customer ? item.customer.name : "") + '</td>'
@@ -944,11 +970,14 @@ function renderDetailFollowups(customer) {
   list.innerHTML = items.length
     ? items.map((item) => {
       const publisher = textOrDash(item.publisher || (item.customer && (item.customer.creator || item.customer.owner)) || customer.owner || customer.creator || "客");
+      const editButton = item.id
+        ? '<button class="detail-log-edit" type="button" data-edit-followup="' + item.id + '">编辑</button>'
+        : "";
       return '<article class="detail-log-card">'
         + '<div class="detail-log-head">'
         + '<span class="detail-log-avatar">' + publisher.slice(0, 1) + '</span>'
         + '<div><strong>' + publisher + '</strong><time>' + dateTimeText(item.created_at) + ' · ' + textOrDash(item.publisher || (item.customer && (item.customer.creator || item.customer.owner)) || "未知发布人") + '</time></div>'
-        + '<span class="detail-log-badge">跟进记录</span>'
+        + '<div class="detail-log-actions"><span class="detail-log-badge">跟进记录</span>' + editButton + '</div>'
         + '</div>'
         + '<p>' + textOrDash(item.content) + '</p>'
         + '<div class="detail-log-tags"><span>' + textOrDash(item.type) + '</span><span>' + (item.next_action ? dateText(item.next_action) : "-") + '</span></div>'
@@ -1079,9 +1108,7 @@ function openDetailModal(customerId) {
   $("detail-stage").textContent = textOrDash(customer.stage);
   $("detail-owner").textContent = textOrDash(customer.owner);
   $("detail-updated").textContent = dateTimeText(customer.updated_at);
-  if (followupContent) followupContent.value = "";
-  if (followupNext) followupNext.value = "";
-  if (followupType) followupType.value = followupTypeOptions[0];
+  resetDetailFollowupComposer();
   renderDetailBasic(customer);
   renderDetailFollowups(customer);
   renderDetailContacts(customer);
@@ -1100,6 +1127,44 @@ function closeDetailModal() {
   $("detail-modal").classList.add("hidden");
   state.selectedCustomerId = null;
   state.detailBasicEditing = false;
+  resetDetailFollowupComposer();
+}
+
+function resetDetailFollowupComposer() {
+  state.editingActivityId = null;
+  if ($("detail-followup-content")) $("detail-followup-content").value = "";
+  if ($("detail-followup-next")) $("detail-followup-next").value = "";
+  if ($("detail-followup-type")) $("detail-followup-type").value = followupTypeOptions[0];
+  if ($("detail-followup-submit")) $("detail-followup-submit").textContent = "发布";
+  $("detail-followup-cancel")?.classList.add("hidden");
+}
+
+function startEditDetailFollowup(activityId) {
+  const customer = getCustomerById(state.selectedCustomerId);
+  const activity = (state.activities || []).find((item) =>
+    Number(item.id) === Number(activityId)
+    && item.customer
+    && Number(item.customer.id) === Number(state.selectedCustomerId)
+  );
+  if (!customer || !activity) return;
+
+  state.editingActivityId = Number(activity.id);
+  $("detail-followup-content").value = activity.content || "";
+  $("detail-followup-next").value = toDateInputValue(activity.next_action);
+  const typeSelect = $("detail-followup-type");
+  if (typeSelect) {
+    if (activity.type && !Array.from(typeSelect.options).some((option) => option.value === activity.type)) {
+      const option = document.createElement("option");
+      option.value = activity.type;
+      option.textContent = activity.type;
+      typeSelect.appendChild(option);
+    }
+    typeSelect.value = activity.type || followupTypeOptions[0];
+  }
+  $("detail-followup-submit").textContent = "保存修改";
+  $("detail-followup-cancel")?.classList.remove("hidden");
+  renderDetailTabs("followups");
+  $("detail-followup-content").focus();
 }
 
 function openDetailBasicEdit() {
@@ -1141,7 +1206,7 @@ async function saveDetailBasicEdit() {
     payload.next_contact = toAsiaShanghaiDateTime(nextContactValue);
   }
   if (!payload.name) {
-    alert("瀹㈡埛鍚嶇О涓嶈兘涓虹┖");
+    alert("客户名称不能为空");
     return;
   }
   try {
@@ -1170,19 +1235,39 @@ async function submitDetailFollowup() {
     next_action: $("detail-followup-next").value || "",
   };
   try {
-    const created = await api("/api/activities", { method: "POST", body: JSON.stringify(payload) });
+    const editingActivityId = state.editingActivityId;
+    const saved = await api(
+      editingActivityId ? "/api/activities/" + editingActivityId : "/api/activities",
+      {
+        method: editingActivityId ? "PUT" : "POST",
+        body: JSON.stringify(payload),
+      }
+    );
     const customer = getCustomerById(state.selectedCustomerId);
     if (customer) {
-      created.customer = { id: customer.id, name: customer.name };
-      state.activities = [created, ...state.activities];
-      customer.follow_up_record = payload.content;
-      if (payload.next_action) customer.next_contact = toAsiaShanghaiDateTime(payload.next_action);
+      if (editingActivityId) {
+        const index = state.activities.findIndex((item) => Number(item.id) === Number(editingActivityId));
+        const existing = index >= 0 ? state.activities[index] : {};
+        const updated = {
+          ...existing,
+          ...saved,
+          customer: saved.customer || existing.customer || { id: customer.id, name: customer.name },
+        };
+        if (index >= 0) {
+          state.activities[index] = updated;
+        } else {
+          state.activities.push(updated);
+        }
+      } else {
+        saved.customer = { id: customer.id, name: customer.name };
+        state.activities = [saved, ...state.activities];
+      }
+      syncCustomerLatestFollowupState(customer);
       customer.updated_at = new Date().toISOString();
       renderDetailBasic(customer);
       renderDetailFollowups(customer);
     }
-    $("detail-followup-content").value = "";
-    $("detail-followup-next").value = "";
+    resetDetailFollowupComposer();
     renderActivities();
     renderCustomers();
   } catch (err) {
@@ -1200,7 +1285,7 @@ async function submitDetailContact() {
     email: $("detail-contact-email").value.trim(),
   };
   if (!payload.name) {
-    alert("璇疯緭鍏ヨ仈绯讳汉濮撳悕");
+    alert("请输入联系人姓名");
     return;
   }
   try {
@@ -1339,7 +1424,7 @@ function fillCustomerFormRegion(province, city, district) {
 function resetCustomerFormMode() {
   state.editingCustomerId = null;
   $("customer-form-title").textContent = "新建客户";
-  $("customer-form-submit").textContent = "淇濆瓨瀹㈡埛";
+  $("customer-form-submit").textContent = "保存客户";
 }
 
 function openModal() {
@@ -1416,7 +1501,7 @@ function openContractModal(customerId = 0) {
     $("contract-order-date").value = toDateInputValue(new Date());
   }
   if ($("contract-file-list")) {
-    $("contract-file-list").textContent = "鏆傛湭閫夋嫨闄勪欢";
+    $("contract-file-list").textContent = "暂未选择附件";
     $("contract-file-list").classList.remove("has-files");
   }
   $("contract-modal")?.classList.remove("hidden");
@@ -1563,7 +1648,7 @@ $("contract-attachments")?.addEventListener("change", (event) => {
   const box = $("contract-file-list");
   if (!box) return;
   if (!files.length) {
-    box.textContent = "鏆傛湭閫夋嫨闄勪欢";
+    box.textContent = "暂未选择附件";
     box.classList.remove("has-files");
     return;
   }
@@ -1572,6 +1657,7 @@ $("contract-attachments")?.addEventListener("change", (event) => {
 });
 $("detail-close")?.addEventListener("click", closeDetailModal);
 $("detail-followup-submit")?.addEventListener("click", submitDetailFollowup);
+$("detail-followup-cancel")?.addEventListener("click", resetDetailFollowupComposer);
 $("detail-contact-submit")?.addEventListener("click", submitDetailContact);
 $("detail-transfer-pool")?.addEventListener("click", handleTransferToPool);
 $("detail-delete")?.addEventListener("click", handleDeleteCustomer);
@@ -1635,7 +1721,7 @@ $("import-file")?.addEventListener("change", async (event) => {
   showImportProgressModal();
   try {
     const result = await importCustomers(file, setImportProgress);
-    setImportProgress(100, "瀵煎叆瀹屾垚");
+    setImportProgress(100, "导入完成");
     if ($("import-progress-summary")) {
       $("import-progress-summary").classList.remove("hidden");
       $("import-progress-summary").textContent = "成功 " + result.imported + " 条，跳过 " + result.skipped + " 条";
@@ -1647,7 +1733,7 @@ $("import-file")?.addEventListener("change", async (event) => {
       window.setTimeout(hideImportProgressModal, 1200);
     }
   } catch (err) {
-    setImportProgress(100, "瀵煎叆澶辫触");
+    setImportProgress(100, "导入失败");
     if ($("import-progress-summary")) {
       $("import-progress-summary").classList.remove("hidden");
       $("import-progress-summary").textContent = err.message;
@@ -1666,11 +1752,11 @@ $("customer-form")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(event.target).entries());
   if (!String(data.name || "").trim()) {
-    alert("瀹㈡埛鍚嶇О涓嶈兘涓虹┖");
+    alert("客户名称不能为空");
     return;
   }
   if (!String(data.next_contact || "").trim()) {
-    alert("下次联系时间涓嶈兘涓虹┖");
+    alert("下次联系时间不能为空");
     return;
   }
   if (data.next_contact) {
@@ -1833,6 +1919,12 @@ document.addEventListener("click", async (event) => {
     return;
   }
 
+  const editFollowupButton = event.target.closest?.("[data-edit-followup]");
+  if (editFollowupButton) {
+    startEditDetailFollowup(Number(editFollowupButton.getAttribute("data-edit-followup")));
+    return;
+  }
+
   const paymentReviewButton = event.target.closest?.("[data-payment-review]");
   if (paymentReviewButton) {
     try {
@@ -1910,6 +2002,37 @@ document.addEventListener("click", async (event) => {
     } catch (err) {
       alert(err.message);
     }
+    return;
+  }
+
+  const deleteContractButton = event.target.closest?.("[data-contract-delete]");
+  if (deleteContractButton) {
+    const id = Number(deleteContractButton.getAttribute("data-contract-delete"));
+    const contract = getContractById(id);
+    if (!contract || !confirm("确定删除合同“" + (contract.title || "未命名合同") + "”吗？删除后不可恢复。")) return;
+    try {
+      await deleteContract(id);
+      await load();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  const deletePaymentButton = event.target.closest?.("[data-payment-delete]");
+  if (deletePaymentButton) {
+    const id = Number(deletePaymentButton.getAttribute("data-payment-delete"));
+    const payment = (state.payments || []).find((item) => Number(item.id) === id);
+    const serialNo = payment?.serial_no || "这条回款记录";
+    if (!payment || !confirm("确定删除“" + serialNo + "”吗？删除后不可恢复。")) return;
+    try {
+      await deletePayment(id);
+      await load();
+      const customer = getCustomerById(state.selectedCustomerId);
+      if (customer) renderDetailPayments(customer);
+    } catch (err) {
+      alert(err.message);
+    }
+    return;
   }
 });
 

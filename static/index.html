@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Northstar CRM</title>
-  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/app.css?v=20260930-3">
   <script>
     if (!localStorage.getItem("crm_token")) {
       location.replace("/login.html");
@@ -154,11 +154,12 @@
         <div class="panel activity-panel" id="activity-list"></div>
       </section>
 
-      <section id="contracts" class="content hidden">
-        <div class="section-head page-section"><div><h2>合同管理</h2><p>合同提交后需要管理员审批。</p></div><div class="section-actions"><button class="primary" id="open-create-contract" type="button">＋ 新建合同</button></div></div>
-        <div class="panel">
+      <section id="contracts" class="content hidden contract-page">
+        <div class="section-head page-section contract-page-head"><div><span class="section-kicker">BUSINESS / CONTRACTS</span><h2>合同管理</h2><p>集中查看合同状态、审批进度和相关客户信息。</p></div><div class="section-actions"><button class="primary contract-create-btn" id="open-create-contract" type="button"><span>＋</span> 新建合同</button></div></div>
+        <div class="panel contract-panel">
+          <div class="contract-list-bar"><div><strong>合同列表</strong><span>共 <b id="contract-list-count">0</b> 份</span></div><span class="contract-list-hint">点击合同名称查看详情</span></div>
           <div class="table-wrap">
-            <table class="customer-detail-table" >
+            <table class="customer-detail-table contract-table">
               <thead><tr><th>合同名称</th><th>客户</th><th>金额</th><th>状态</th><th>提交人</th><th>审批人</th><th>提交时间</th><th>操作</th></tr></thead>
               <tbody id="contract-list"></tbody>
             </table>
@@ -275,6 +276,7 @@
             <label>下次联系时间
               <input id="detail-followup-next" type="date">
             </label>
+            <button class="secondary hidden" id="detail-followup-cancel" type="button">取消编辑</button>
             <button class="primary" id="detail-followup-submit" type="button">发布</button>
           </div>
         </div>
@@ -567,7 +569,7 @@
     </div>
   </div>
 
-  <script src="/js/app.js?v=20260905-5"></script>
+  <script src="/js/app.js?v=20260930-3"></script>
 </body>
 </html>
 

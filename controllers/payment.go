@@ -123,3 +123,27 @@ func (c *PaymentController) Review() {
 	}
 	c.respond(payment, http.StatusOK)
 }
+
+func (c *PaymentController) Delete() {
+	if currentRole(c.Ctx.Request) != "admin" {
+		c.error("只有管理员可以删除回款", http.StatusForbidden)
+		return
+	}
+
+	id, err := strconv.Atoi(c.Ctx.Input.Param(":id"))
+	if err != nil || id == 0 {
+		c.error("回款记录不存在", http.StatusBadRequest)
+		return
+	}
+
+	payment := models.Payment{Id: id}
+	if err := orm.NewOrm().Read(&payment); err != nil {
+		c.error("回款记录不存在", http.StatusNotFound)
+		return
+	}
+	if _, err := orm.NewOrm().Delete(&payment); err != nil {
+		c.error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c.respond(map[string]any{"deleted": true, "id": id}, http.StatusOK)
+}
